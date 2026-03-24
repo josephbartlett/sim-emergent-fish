@@ -158,14 +158,13 @@
                 <span class="panel-kicker">Trace</span>
                 <h2>Population history</h2>
               </div>
-              <p>Fish, food, and average energy.</p>
+              <p class="chart-key" aria-label="Fish, food, and average energy">
+                <span class="chart-key-item fish">Fish</span>
+                <span class="chart-key-item food">Food</span>
+                <span class="chart-key-item energy">Energy</span>
+              </p>
             </div>
             <canvas id="history" width="300" height="110" aria-label="Simulation history chart"></canvas>
-            <div class="legend-row" aria-hidden="true">
-              <span class="legend-pill fish">Fish</span>
-              <span class="legend-pill food">Food</span>
-              <span class="legend-pill energy">Energy</span>
-            </div>
             <p id="history-note" class="card-note">Sampling the tank...</p>
             <div class="card-head compact-head">
               <div>
