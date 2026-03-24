@@ -74,6 +74,26 @@
               </article>
             </div>
           </div>
+          <div id="tank-replay-bar" aria-label="Replay controls">
+            <div class="replay-toolbar" aria-label="Replay and bookmark controls">
+              <button type="button" class="chrome-button chrome-subtle" id="replay-bookmark">Bookmark [B]</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-short">Rewind 15s</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-long">Rewind 30s</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-live">Return Live</button>
+            </div>
+            <div class="replay-scrubber">
+              <div class="replay-scrub-meta">
+                <span>Replay scrubber</span>
+                <strong id="replay-scrub-label">Live edge</strong>
+              </div>
+              <input type="range" id="replay-scrubber" min="0" max="1" step="1" value="1" aria-label="Replay scrubber">
+              <div class="replay-scrub-scale" aria-hidden="true">
+                <span>Older</span>
+                <span>Live</span>
+              </div>
+            </div>
+            <p id="replay-note" class="card-note">Recording the last 45 seconds of the current run for quick rewinds and bookmarks.</p>
+          </div>
           <div id="tank-stage">
             <canvas id="game" width="320" height="200" aria-label="Fishtank ecology simulation canvas"></canvas>
           </div>
@@ -177,24 +197,13 @@
             </div>
             <canvas id="history" width="300" height="110" aria-label="Simulation history chart"></canvas>
             <p id="history-note" class="card-note">Sampling the tank...</p>
-            <div class="replay-toolbar" aria-label="Replay and bookmark controls">
-              <button type="button" class="chrome-button chrome-subtle" id="replay-bookmark">Bookmark [B]</button>
-              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-short">Rewind 15s</button>
-              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-long">Rewind 30s</button>
-              <button type="button" class="chrome-button chrome-subtle" id="replay-live">Return Live</button>
-            </div>
-            <div class="replay-scrubber">
-              <div class="replay-scrub-meta">
-                <span>Replay scrubber</span>
-                <strong id="replay-scrub-label">Live edge</strong>
+            <div class="card-head compact-head">
+              <div>
+                <span class="panel-kicker">Replay Marks</span>
+                <h2>Saved moments</h2>
               </div>
-              <input type="range" id="replay-scrubber" min="0" max="1" step="1" value="1" aria-label="Replay scrubber">
-              <div class="replay-scrub-scale" aria-hidden="true">
-                <span>Older</span>
-                <span>Live</span>
-              </div>
+              <p>Bookmarks from the current branch.</p>
             </div>
-            <p id="replay-note" class="card-note">Recording the last 45 seconds of the current run for quick rewinds and bookmarks.</p>
             <div id="bookmark-list" aria-live="polite">
               <article class="bookmark-chip bookmark-empty">
                 <strong>No bookmarks yet</strong>

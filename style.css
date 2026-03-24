@@ -386,6 +386,24 @@ body::before {
     inset 0 -32px 46px rgba(0, 0, 0, 0.30);
 }
 
+#tank-replay-bar {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(168, 230, 255, 0.10);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(12, 22, 44, 0.88), rgba(5, 10, 21, 0.76));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 20px 48px rgba(0, 0, 0, 0.18);
+}
+
+#tank-replay-bar #replay-note {
+  margin: 0;
+}
+
 #tank-stage::before,
 #tank-stage::after {
   content: "";
@@ -497,7 +515,7 @@ body::before {
 }
 
 #history-panel {
-  grid-template-rows: auto auto auto auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto minmax(0, 1fr);
   min-height: 0;
   align-content: stretch;
 }

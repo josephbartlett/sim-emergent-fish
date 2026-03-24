@@ -27,7 +27,7 @@ Choosing a scenario resets the run onto that seed and tuning bundle immediately,
 
 ## Replay And Bookmarks
 
-The history card records a rolling replay buffer for the last 45 seconds of the current run.
+The tank panel exposes the active replay controls, while the history card keeps saved bookmark chips and the event timeline.
 
 - `Bookmark [B]`: pin the current live state into the bookmark strip
 - `Rewind 15s` / `Rewind 30s`: pause into a recent snapshot from the rolling buffer
