@@ -21,6 +21,7 @@ Bug sweep status as of 2026-03-24:
 - scripted browser interactions on the main app completed without console errors, page errors, or failed requests
 - the seed audit completed successfully and returned stable aggregate metrics
 - a Playwright-backed seed-audit threshold check now exists for local and CI use
+- a Playwright-backed replay stress check now exists for local and CI use, covering bookmarks, scrubber motion, rewind buttons, branch resumes, and live return
 
 Residual risks to keep an eye on:
 

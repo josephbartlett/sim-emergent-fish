@@ -21,6 +21,8 @@ Minimal sanity checks:
 node --check game.js
 curl -I http://127.0.0.1:8000/index.html
 curl -I http://127.0.0.1:8000/seed-audit.html
+python3 scripts/check_seed_audit.py
+python3 scripts/check_replay_stress.py
 ```
 
 ## What It Includes

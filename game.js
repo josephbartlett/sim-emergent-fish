@@ -4949,6 +4949,7 @@
     applyScenario: (id) => applyScenario(id),
     rewindReplay: (seconds) => rewindReplay(seconds),
     returnToLive: () => returnToLive(),
+    restoreBookmark: (id) => restoreBookmark(id),
     bookmarkIds: () => REPLAY.bookmarks.map((entry) => entry.id),
     setView: (key, value) => {
       if (!(key in VIEW)) return { ...VIEW };

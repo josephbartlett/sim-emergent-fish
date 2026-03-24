@@ -11,17 +11,20 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 - a named scenario lab with `Baseline Drift`, `Nursery Pressure`, `Predator Bloom`, `Lean Recovery`, and `Murky Shock`
 - replay and bookmark controls for the last 45 seconds of tank history, including rewind and live-return flow
 - a replay scrubber in the history card for stepping through recent snapshots without relying only on fixed rewind buttons
+- a Playwright-backed replay stress check under `scripts/check_replay_stress.py` for bookmarks, scrubber motion, rewind buttons, branch resumes, and live return
 
 ### Changed
 
 - observatory docs to explain scenario bundles, replay controls, and review workflow for the upcoming `v0.2.0` minor
 - scenario selection in the control drawer so it immediately reseeds the tank into the chosen experiment setup and returns focus to the simulation
+- repo verification docs and CI to include the replay stress check alongside the seed audit
 
 ### Fixed
 
 - replay return flow so `Return Live` restores the running branch instead of leaving the tank in a stale paused state
 - replay presentation so snapshot browsing no longer drops the tank into the full pause slab
 - replay branch handling so scrubbing after a resumed snapshot no longer overwrites the original live-return target
+- replay test coverage so bookmark restore automation no longer races detached DOM chips during stress runs
 
 ## [0.1.3] - 2026-03-24
 
