@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-03-24
+
 ### Added
 
 - a lightweight Playwright-backed seed-audit threshold check under `scripts/check_seed_audit.py`
@@ -14,6 +16,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 ### Fixed
 
 - the tank action row so the seed input and `Load Seed` control wrap as a single unit on laptop-width layouts
+- the population history card legend layout by moving the chart key into the header and removing the redundant legend band
 - repo verification docs to include the automated seed-audit check
 
 ## [0.1.2] - 2026-03-24
