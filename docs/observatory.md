@@ -8,9 +8,33 @@ This document covers how to run the tank, read the UI, and interpret the simulat
 - `R` or `Enter`: advance to the next deterministic seed
 - `T`: open or close the control drawer
 - `C`: toggle focus mode
+- `B`: bookmark the current live moment
 - `L`: highlight the lineage of the currently selected fish
 - `X`, `Backspace`, or `Delete`: clear selection and lineage highlight
 - click a fish: pin it in the inspector instead of pausing
+
+## Scenario Lab
+
+The control drawer now includes named experiment bundles.
+
+- `Baseline Drift`: the default comparison tank
+- `Nursery Pressure`: more juveniles, tighter food, and stronger shelter use
+- `Predator Bloom`: richer water with more carnivore pressure
+- `Lean Recovery`: a post-crash recovery setup with fewer starting fish
+- `Murky Shock`: a visibility-constrained run that starts under murk pressure
+
+Choosing a scenario resets the run onto that seed and tuning bundle immediately, then closes the drawer so the tank is readable again.
+
+## Replay And Bookmarks
+
+The history card records a rolling replay buffer for the last 45 seconds of the current run.
+
+- `Bookmark [B]`: pin the current live state into the bookmark strip
+- `Rewind 15s` / `Rewind 30s`: pause into a recent snapshot from the rolling buffer
+- `Return Live`: resume the saved live branch that existed before the rewind
+- bookmark chips: jump directly back to a saved moment
+
+Replay snapshots pause the simulation intentionally. `Return Live` restores the live branch and resumes the tank.
 
 ## Observation Surfaces
 
@@ -30,6 +54,7 @@ These are the fast summary view for the whole tank.
 The strip above the canvas carries:
 
 - current seed and run mode
+- the active scenario label
 - the short watch note for the current phase or disturbance
 
 ### In-Tank HUD
@@ -94,3 +119,4 @@ The simulation is deterministic by seed. A few seeds that have produced readable
 - `240311`
 - `241288`
 - `243242`
+- `246173` for predator-heavy runs

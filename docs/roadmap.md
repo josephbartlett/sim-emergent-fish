@@ -9,7 +9,7 @@ Latest release: `v0.1.3`
 Current emphasis:
 
 - keep `main` releaseable
-- grow the simulation as an experiment platform, not a scripted game
+- prepare `v0.2.0` as a stronger experiment platform, not a scripted game
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -44,12 +44,18 @@ Likely work:
 
 Theme: scenario lab and replay.
 
-Target features:
+Implemented on the current feature branch:
 
 - named experiment scenarios
 - saved seed plus preset bundles
-- bookmarks or short replay for recent tank history
-- better compare-and-observe workflow
+- bookmarks and short replay for recent tank history
+- faster compare-and-observe workflow through scenario resets and live-return playback
+
+Still worth reviewing before release:
+
+- UI polish around the new scenario and replay surfaces
+- review screenshots for the scenario lab and replay flow
+- a final regression pass on scenario starts and bookmark restore behavior
 
 ## v0.3.0
 

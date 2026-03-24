@@ -63,11 +63,19 @@
     controlFertilityValue: document.getElementById('control-fertility-value'),
     controlSeason: document.getElementById('control-season'),
     controlSeasonValue: document.getElementById('control-season-value'),
+    scenarioNote: document.getElementById('scenario-note'),
+    scenarioButtons: Array.from(document.querySelectorAll('[data-scenario]')),
     presetNote: document.getElementById('preset-note'),
     presetButtons: Array.from(document.querySelectorAll('[data-preset]')),
     viewButtons: Array.from(document.querySelectorAll('[data-view]')),
     historyCanvas: document.getElementById('history'),
     historyNote: document.getElementById('history-note'),
+    replayNote: document.getElementById('replay-note'),
+    replayBookmarkButton: document.getElementById('replay-bookmark'),
+    replayRewindShortButton: document.getElementById('replay-rewind-short'),
+    replayRewindLongButton: document.getElementById('replay-rewind-long'),
+    replayLiveButton: document.getElementById('replay-live'),
+    bookmarkList: document.getElementById('bookmark-list'),
     eventStream: document.getElementById('event-stream'),
     seasonCallout: document.getElementById('season-callout'),
     pressureCallout: document.getElementById('pressure-callout'),
@@ -989,12 +997,20 @@
 
   function makeRng(seed) {
     let t = (seed >>> 0) || 1;
-    return () => {
+    const next = () => {
       t += 0x6D2B79F5;
       let r = Math.imul(t ^ (t >>> 15), 1 | t);
       r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+      next.state = t >>> 0;
       return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
     };
+    next.state = t >>> 0;
+    return next;
+  }
+
+  function cloneData(value) {
+    if (typeof structuredClone === 'function') return structuredClone(value);
+    return JSON.parse(JSON.stringify(value));
   }
 
   // --- Simulation ----------------------------------------------------------
@@ -1094,10 +1110,111 @@
     },
   };
 
+  const DEFAULT_LINEUP = ['grazer', 'shoaler', 'grazer', 'opportunist', 'shoaler', 'grazer', 'hunter', 'shoaler', 'opportunist', 'grazer', 'hunter', 'shoaler'];
+
+  const SCENARIOS = {
+    baseline: {
+      label: 'Baseline Drift',
+      note: 'Balanced pressure and a standard seeded population for comparing routes, wakes, and slow turnover.',
+      focus: 'Good for reading the base ecology before applying a stronger scenario.',
+      seed: 240311,
+      values: { foodFlow: 1.00, metabolism: 1.00, fertility: 1.00, season: 1.00 },
+      population: { count: SIM.initialFish, foodCount: SIM.initialFood, juvenileRatio: 0.18, lineup: DEFAULT_LINEUP },
+      env: { season: 0.50 },
+    },
+    nursery_pressure: {
+      label: 'Nursery Pressure',
+      note: 'More juveniles, leaner feeding pressure, and shelter-heavy lanes make refuge use and wake clustering easier to read.',
+      focus: 'Watch juvenile traffic pile into shelter pockets while adults patrol the open lanes around them.',
+      seed: 241288,
+      values: { foodFlow: 0.90, metabolism: 1.08, fertility: 0.96, season: 0.94 },
+      population: {
+        count: 28,
+        foodCount: 30,
+        juvenileRatio: 0.42,
+        lineup: ['grazer', 'shoaler', 'grazer', 'shoaler', 'opportunist', 'shoaler', 'hunter', 'grazer', 'shoaler', 'opportunist'],
+      },
+      env: {
+        season: 0.38,
+        nutrientPatches: [
+          { x: 0.22, y: 0.78, nut: 3.2 },
+          { x: 0.78, y: 0.74, nut: 2.6 },
+        ],
+      },
+    },
+    predator_bloom: {
+      label: 'Predator Bloom',
+      note: 'Richer water and a carnivore-heavy mix create visible hunting waves around bloom lanes and structure edges.',
+      focus: 'Watch hunters and opportunists cycle between bloom-fed recovery and short predation bursts.',
+      seed: 246173,
+      values: { foodFlow: 1.16, metabolism: 1.02, fertility: 1.08, season: 0.92 },
+      population: {
+        count: 26,
+        foodCount: 48,
+        juvenileRatio: 0.12,
+        lineup: ['hunter', 'opportunist', 'shoaler', 'hunter', 'opportunist', 'grazer', 'hunter', 'shoaler', 'opportunist', 'hunter'],
+      },
+      env: {
+        season: 0.66,
+        nutrientPatches: [
+          { x: 0.34, y: 0.42, nut: 3.4 },
+          { x: 0.68, y: 0.55, nut: 3.8 },
+        ],
+      },
+    },
+    lean_recovery: {
+      label: 'Lean Recovery',
+      note: 'Starts on the back side of a crash with fewer fish, tight food, and recovery plumes that can trigger a rebound.',
+      focus: 'Watch whether recovering food pockets rebuild grazers first or simply feed another predator wave.',
+      seed: 240311,
+      values: { foodFlow: 0.88, metabolism: 1.12, fertility: 0.92, season: 1.05 },
+      population: {
+        count: 18,
+        foodCount: 18,
+        juvenileRatio: 0.24,
+        lineup: ['grazer', 'shoaler', 'opportunist', 'grazer', 'hunter', 'shoaler', 'grazer', 'opportunist'],
+      },
+      env: {
+        season: 0.28,
+        foodCrash: 0.18,
+        nutrientPatches: [
+          { x: 0.20, y: 0.82, nut: 4.4 },
+          { x: 0.56, y: 0.76, nut: 3.8 },
+          { x: 0.80, y: 0.80, nut: 3.2 },
+        ],
+      },
+    },
+    murky_shock: {
+      label: 'Murky Shock',
+      note: 'A balanced tank starts under murk pressure, forcing fish to rely more on memory, shelter, and short-range cues.',
+      focus: 'Watch routes compress and split as visibility drops, then see which lineages recover cleanly afterward.',
+      seed: 244219,
+      values: { foodFlow: 1.00, metabolism: 1.05, fertility: 1.00, season: 1.14 },
+      population: { count: 24, foodCount: 34, juvenileRatio: 0.18, lineup: DEFAULT_LINEUP },
+      env: {
+        season: 0.52,
+        disturbance: { active: 'murk', strength: 0.62, duration: 12, timer: 24 },
+      },
+    },
+  };
+
   const VIEW = {
     trails: true,
     foodMap: true,
     current: false,
+  };
+
+  const REPLAY = {
+    sampleEvery: 1,
+    maxSeconds: 45,
+    maxBookmarks: 6,
+    maxVisibleBookmarks: 5,
+    buffer: [],
+    bookmarks: [],
+    returnSnapshot: null,
+    clock: 0,
+    nextId: 1,
+    activeSnapshotId: null,
   };
 
   const FISH_TINTS = [COL.fish1, COL.fish2, COL.fish3, COL.orange, COL.gray];
@@ -1496,6 +1613,7 @@
   let paused = false;
   let controlsOpen = false;
   let cinematic = false;
+  let currentScenarioId = 'baseline';
   let selectedFishId = null;
   let highlightedLineage = null;
   let pauseReason = '';
@@ -1567,6 +1685,145 @@
     if (type === 'oxygen') return 'Oxygen dip';
     if (type === 'crash') return 'Food crash';
     return 'Disturbance';
+  }
+
+  function scenarioById(id) {
+    return SCENARIOS[id] || SCENARIOS.baseline;
+  }
+
+  function currentScenario() {
+    return scenarioById(currentScenarioId);
+  }
+
+  function pointFromNormalized(nx, ny) {
+    return {
+      x: lerp(WORLD.edgePad, W - WORLD.edgePad, clamp(nx, 0, 1)),
+      y: lerp(WORLD.waterTopSoft, WORLD.waterBottom, clamp(ny, 0, 1)),
+    };
+  }
+
+  function resetReplayState() {
+    REPLAY.buffer.length = 0;
+    REPLAY.bookmarks.length = 0;
+    REPLAY.returnSnapshot = null;
+    REPLAY.clock = 0;
+    REPLAY.activeSnapshotId = null;
+    REPLAY.nextId = 1;
+  }
+
+  function makeReplaySnapshot(kind = 'auto', label = '') {
+    return {
+      id: REPLAY.nextId++,
+      kind,
+      label,
+      takenAt: Number(g.time.toFixed(2)),
+      scenarioId: currentScenarioId,
+      currentSeed,
+      seedBase: SIM.seedBase,
+      runIndex,
+      paused,
+      pauseReason,
+      tune: cloneData(TUNE),
+      history: cloneData(HISTORY),
+      selectedFishId,
+      highlightedLineage,
+      rngState: simRand && Number.isFinite(simRand.state) ? simRand.state : currentSeed,
+      state: cloneData(g),
+    };
+  }
+
+  function captureReplaySnapshot(kind = 'auto', label = '') {
+    const snapshot = makeReplaySnapshot(kind, label);
+    REPLAY.buffer.push(snapshot);
+    const maxEntries = Math.max(1, Math.round(REPLAY.maxSeconds / REPLAY.sampleEvery));
+    if (REPLAY.buffer.length > maxEntries) REPLAY.buffer.shift();
+    return snapshot;
+  }
+
+  function restoreReplaySnapshot(snapshot, preserveReturn = true) {
+    if (!snapshot) return false;
+    if (preserveReturn && REPLAY.activeSnapshotId == null) {
+      REPLAY.returnSnapshot = makeReplaySnapshot('live', 'Live return');
+    }
+    currentScenarioId = snapshot.scenarioId || currentScenarioId;
+    for (const [key, value] of Object.entries(snapshot.tune || {})) {
+      if (key in TUNE) TUNE[key] = value;
+    }
+    currentSeed = snapshot.currentSeed || currentSeed;
+    SIM.seedBase = snapshot.seedBase || currentSeed;
+    runIndex = snapshot.runIndex || 0;
+    simRand = makeRng(snapshot.rngState || currentSeed);
+    rebuildHabitat(currentSeed);
+    g = cloneData(snapshot.state);
+    HISTORY.points = cloneData(snapshot.history?.points || []);
+    HISTORY.clock = snapshot.history?.clock || 0;
+    selectedFishId = snapshot.selectedFishId ?? null;
+    highlightedLineage = snapshot.highlightedLineage ?? null;
+    const restoringLiveBranch = snapshot.kind === 'live' && !preserveReturn;
+    paused = restoringLiveBranch ? Boolean(snapshot.paused) : true;
+    pauseReason = paused ? (restoringLiveBranch ? snapshot.pauseReason || 'manual' : 'replay') : '';
+    pauseClock = 0;
+    simAccumulator = 0;
+    uiClock = 0;
+    last = performance.now();
+    REPLAY.activeSnapshotId = snapshot.kind === 'live' ? null : snapshot.id;
+    syncControlInputs();
+    updateUiPanels(true);
+    return true;
+  }
+
+  function replaySnapshotFromBuffer(secondsBack) {
+    if (!REPLAY.buffer.length) return null;
+    const target = Math.max(0, g.time - secondsBack);
+    let pick = REPLAY.buffer[0];
+    for (const snapshot of REPLAY.buffer) {
+      if (snapshot.takenAt <= target) pick = snapshot;
+      else break;
+    }
+    return pick;
+  }
+
+  function addBookmark() {
+    const label = `Bookmark ${REPLAY.bookmarks.length + 1}`;
+    const snapshot = makeReplaySnapshot('bookmark', label);
+    REPLAY.bookmarks.unshift(snapshot);
+    if (REPLAY.bookmarks.length > REPLAY.maxBookmarks) REPLAY.bookmarks.length = REPLAY.maxBookmarks;
+    pushEvent('bookmark', `${label} saved`, `${currentScenario().label} at T+${formatEventTime(snapshot.takenAt)} with ${snapshot.state.fish.length} fish in view.`, {
+      lineage: highlightedLineage,
+    });
+    updateUiPanels(true);
+    return snapshot;
+  }
+
+  function rewindReplay(secondsBack) {
+    const snapshot = replaySnapshotFromBuffer(secondsBack);
+    if (!snapshot) return false;
+    const restored = restoreReplaySnapshot(snapshot, true);
+    if (restored) {
+      pauseReason = 'replay';
+      SFX.play('ui');
+    }
+    return restored;
+  }
+
+  function restoreBookmark(id) {
+    const snapshot = REPLAY.bookmarks.find((entry) => entry.id === id);
+    if (!snapshot) return false;
+    const restored = restoreReplaySnapshot(snapshot, true);
+    if (restored) SFX.play('ui');
+    return restored;
+  }
+
+  function returnToLive() {
+    if (!REPLAY.returnSnapshot) return false;
+    const snapshot = REPLAY.returnSnapshot;
+    REPLAY.returnSnapshot = null;
+    const restored = restoreReplaySnapshot(snapshot, false);
+    if (restored) {
+      REPLAY.activeSnapshotId = null;
+      SFX.play('ui');
+    }
+    return restored;
   }
 
   function pocketShelterAt(x, y) {
@@ -1888,11 +2145,39 @@
       .join('');
   }
 
+  function renderBookmarkList() {
+    if (!UI.bookmarkList) return;
+    if (!REPLAY.bookmarks.length) {
+      UI.bookmarkList.innerHTML =
+        '<article class="bookmark-chip bookmark-empty"><strong>No bookmarks yet</strong><small>Bookmark a live moment to pin a seed, time, and population snapshot for fast return.</small></article>';
+      return;
+    }
+    UI.bookmarkList.innerHTML = REPLAY.bookmarks
+      .slice(0, REPLAY.maxVisibleBookmarks)
+      .map((snapshot) => {
+        const active = snapshot.id === REPLAY.activeSnapshotId;
+        return `<button type="button" class="bookmark-chip" data-bookmark-id="${snapshot.id}" data-active="${active ? 'true' : 'false'}"><strong>${snapshot.label} · T+${formatEventTime(snapshot.takenAt)}</strong><small>${scenarioById(snapshot.scenarioId).label} · seed ${snapshot.currentSeed} · ${snapshot.state.fish.length} fish</small></button>`;
+      })
+      .join('');
+  }
+
   function syncControlInputs() {
     if (UI.controlFood) UI.controlFood.value = String(Math.round(TUNE.foodFlow * 100));
     if (UI.controlMetabolism) UI.controlMetabolism.value = String(Math.round(TUNE.metabolism * 100));
     if (UI.controlFertility) UI.controlFertility.value = String(Math.round(TUNE.fertility * 100));
     if (UI.controlSeason) UI.controlSeason.value = String(Math.round(TUNE.season * 100));
+  }
+
+  function syncScenarioUi() {
+    const scenario = currentScenario();
+    for (const button of UI.scenarioButtons) {
+      const isActive = button.dataset.scenario === currentScenarioId;
+      button.dataset.active = isActive ? 'true' : 'false';
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    }
+    if (UI.scenarioNote) {
+      UI.scenarioNote.textContent = `${scenario.label}. ${scenario.note}`;
+    }
   }
 
   function findMatchingPreset() {
@@ -1925,6 +2210,27 @@
     }
   }
 
+  function syncReplayUi() {
+    const liveAvailable = Boolean(REPLAY.returnSnapshot);
+    const replayActive = REPLAY.activeSnapshotId != null;
+    if (UI.replayBookmarkButton) UI.replayBookmarkButton.disabled = !g || !g.fish.length;
+    if (UI.replayRewindShortButton) UI.replayRewindShortButton.disabled = REPLAY.buffer.length < 2;
+    if (UI.replayRewindLongButton) UI.replayRewindLongButton.disabled = REPLAY.buffer.length < 2;
+    if (UI.replayLiveButton) {
+      UI.replayLiveButton.disabled = !liveAvailable;
+      UI.replayLiveButton.dataset.state = replayActive ? 'active' : 'idle';
+    }
+    if (UI.replayNote) {
+      if (replayActive) {
+        const active = REPLAY.bookmarks.find((entry) => entry.id === REPLAY.activeSnapshotId) || REPLAY.buffer.find((entry) => entry.id === REPLAY.activeSnapshotId);
+        const label = active ? `${active.label || 'Snapshot'} at T+${formatEventTime(active.takenAt)}` : 'Recorded snapshot';
+        UI.replayNote.textContent = `Replay loaded from ${label}. Return Live restores the saved live branch before this rewind.`;
+      } else {
+        UI.replayNote.textContent = `Recording the last ${REPLAY.maxSeconds} seconds of ${currentScenario().label}. ${REPLAY.bookmarks.length} bookmark${REPLAY.bookmarks.length === 1 ? '' : 's'} saved.`;
+      }
+    }
+  }
+
   function applyPreset(id) {
     const preset = PRESETS[id];
     if (!preset) return;
@@ -1932,6 +2238,20 @@
     syncControlInputs();
     syncPresetUi();
     updateUiPanels(true);
+  }
+
+  function applyScenario(id) {
+    const scenario = scenarioById(id);
+    currentScenarioId = id in SCENARIOS ? id : 'baseline';
+    for (const [key, value] of Object.entries(scenario.values || {})) {
+      if (key in TUNE) TUNE[key] = value;
+    }
+    SIM.seedBase = scenario.seed || SIM.seedBase;
+    runIndex = 0;
+    syncControlInputs();
+    syncScenarioUi();
+    syncPresetUi();
+    resetSimulation();
   }
 
   function setSeed(seed) {
@@ -1985,8 +2305,11 @@
     }
 
     return {
+      scenario: g.run.scenario,
       seed: g.run.seed,
       time: Number(g.time.toFixed(2)),
+      paused,
+      pauseReason,
       fish: g.fish.length,
       food: g.food.length,
       avgEnergy: Number(g.avgEnergy.toFixed(2)),
@@ -2020,8 +2343,10 @@
     if (UI.controlMetabolismValue) UI.controlMetabolismValue.textContent = `${TUNE.metabolism.toFixed(2)}x`;
     if (UI.controlFertilityValue) UI.controlFertilityValue.textContent = `${TUNE.fertility.toFixed(2)}x`;
     if (UI.controlSeasonValue) UI.controlSeasonValue.textContent = `${TUNE.season.toFixed(2)}x`;
+    syncScenarioUi();
     syncPresetUi();
     syncViewUi();
+    syncReplayUi();
     if (UI.pauseButton) {
       UI.pauseButton.textContent = paused ? 'Resume [P]' : 'Pause [P]';
       UI.pauseButton.dataset.state = paused ? 'paused' : 'running';
@@ -2052,6 +2377,13 @@
   function resetHistory() {
     HISTORY.points.length = 0;
     HISTORY.clock = 0;
+  }
+
+  function sampleReplay(dt) {
+    REPLAY.clock -= dt;
+    if (REPLAY.clock > 0) return;
+    REPLAY.clock += REPLAY.sampleEvery;
+    captureReplaySnapshot('auto', 'Recent');
   }
 
   function sampleHistory(dt) {
@@ -2173,6 +2505,7 @@
     const dominantId = ['grazer', 'shoaler', 'opportunist', 'hunter'].sort((a, b) => counts[b] - counts[a])[0];
     const dominant = counts[dominantId] ? archetypeById(dominantId).label : 'NONE';
     const selected = findFishById(selectedFishId);
+    const scenario = currentScenario();
     const season = g.env.season;
     const disturbance = disturbanceLabel();
     const recent = HISTORY.points.length ? HISTORY.points[Math.max(0, HISTORY.points.length - 10)] : null;
@@ -2189,7 +2522,7 @@
           : 'No surviving fish in the tank';
     }
     if (UI.statFood) UI.statFood.textContent = `${g.food.length} food • ${g.plankton.length} plumes`;
-    if (UI.statSeason) UI.statSeason.textContent = `Seed ${g.run.seed} • ${seasonSentence(season)} • ${disturbance}`;
+    if (UI.statSeason) UI.statSeason.textContent = `${scenario.label} • Seed ${g.run.seed} • ${seasonSentence(season)} • ${disturbance}`;
     if (UI.statEnergy) UI.statEnergy.textContent = `${Math.round(g.avgEnergy)} avg energy`;
     if (UI.statPressure) {
       const presetLabel = activePreset === 'custom' ? 'Custom mix' : PRESETS[activePreset].label;
@@ -2205,10 +2538,10 @@
     }
     if (UI.overlayResources) UI.overlayResources.textContent = `${g.food.length} food • ${g.plankton.length} plumes`;
     if (UI.overlayResourceNote) UI.overlayResourceNote.textContent = `${seasonSentence(season)} • ${disturbance}`;
-    if (UI.overlayRun) UI.overlayRun.textContent = `Seed ${g.run.seed}`;
+    if (UI.overlayRun) UI.overlayRun.textContent = scenario.label;
     if (UI.overlayRunNote) {
       const presetLabel = activePreset === 'custom' ? 'Custom mix' : PRESETS[activePreset].label;
-      UI.overlayRunNote.textContent = `${presetLabel} • ${paused ? 'Paused' : 'Running'}`;
+      UI.overlayRunNote.textContent = `Seed ${g.run.seed} • ${presetLabel} • ${paused ? 'Paused' : 'Running'}`;
     }
 
     if (UI.splitJuvenile) UI.splitJuvenile.textContent = String(counts.juvenile);
@@ -2356,6 +2689,7 @@
     }
 
     renderEventStream();
+    renderBookmarkList();
     drawHistoryPanel();
     syncDockHeights();
   }
@@ -2450,6 +2784,14 @@
       input.addEventListener('change', () => SFX.play('ui'));
     }
 
+    for (const button of UI.scenarioButtons) {
+      button.addEventListener('click', () => {
+        controlsOpen = false;
+        applyScenario(button.dataset.scenario);
+        SFX.play('ui');
+      });
+    }
+
     for (const button of UI.presetButtons) {
       button.addEventListener('click', () => {
         applyPreset(button.dataset.preset);
@@ -2465,6 +2807,39 @@
         syncViewUi();
         updateUiPanels(true);
         SFX.play('ui');
+      });
+    }
+
+    if (UI.replayBookmarkButton) {
+      UI.replayBookmarkButton.addEventListener('click', () => {
+        addBookmark();
+        SFX.play('ui');
+      });
+    }
+
+    if (UI.replayRewindShortButton) {
+      UI.replayRewindShortButton.addEventListener('click', () => {
+        rewindReplay(15);
+      });
+    }
+
+    if (UI.replayRewindLongButton) {
+      UI.replayRewindLongButton.addEventListener('click', () => {
+        rewindReplay(30);
+      });
+    }
+
+    if (UI.replayLiveButton) {
+      UI.replayLiveButton.addEventListener('click', () => {
+        returnToLive();
+      });
+    }
+
+    if (UI.bookmarkList) {
+      UI.bookmarkList.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-bookmark-id]');
+        if (!button) return;
+        restoreBookmark(Number(button.dataset.bookmarkId));
       });
     }
   }
@@ -2528,7 +2903,7 @@
       stats: { births: 0, deaths: 0, foodTaken: 0, predations: 0, reseeds: 0, disturbances: 0 },
       avgEnergy: 0,
       extinctionClock: 0,
-      run: { seed: currentSeed, index: runIndex - 1 },
+      run: { seed: currentSeed, index: runIndex - 1, scenario: currentScenarioId },
       env: {
         season: 0.5,
         blooms: [createBloom(0), createBloom(1), createBloom(2)],
@@ -2691,6 +3066,30 @@
     });
   }
 
+  function applyScenarioEnvironment(scenario) {
+    const env = scenario.env || {};
+    if (env.season != null) g.env.season = clamp(env.season, 0.05, 0.95);
+    if (env.murk != null) g.env.murk = clamp(env.murk, 0, 1);
+    if (env.oxygenDip != null) g.env.oxygenDip = clamp(env.oxygenDip, 0, 1);
+    if (env.foodCrash != null) g.env.foodCrash = clamp(env.foodCrash, 0, 1);
+    if (env.disturbance) {
+      g.env.disturbance.active = env.disturbance.active || null;
+      g.env.disturbance.age = 0;
+      g.env.disturbance.duration = env.disturbance.duration ?? randSim(SIM.disturbanceDurationMin, SIM.disturbanceDurationMax);
+      g.env.disturbance.strength = env.disturbance.strength ?? 0.5;
+      g.env.disturbance.timer = env.disturbance.timer ?? randSim(SIM.disturbanceEveryMin, SIM.disturbanceEveryMax);
+    }
+    if (Array.isArray(env.nutrientPatches)) {
+      for (const patch of env.nutrientPatches) {
+        const point = pointFromNormalized(patch.x, patch.y);
+        depositNutrients(point.x, point.y, patch.nut ?? 2.4);
+        for (let i = 0; i < Math.max(2, Math.round((patch.nut ?? 2.4) * 1.5)); i++) {
+          spawnFood(point.x + randSim(-scaleWorld(14), scaleWorld(14)), point.y + randSim(-scaleWorld(8), scaleWorld(8)));
+        }
+      }
+    }
+  }
+
   function spawnDecoBubble() {
     g.deco.push({
       x: randSim(WORLD.sidePad, W - WORLD.sidePad),
@@ -2790,13 +3189,18 @@
     });
   }
 
-  function spawnInitialPopulation(count = SIM.initialFish) {
-    const lineup = ['grazer', 'shoaler', 'grazer', 'opportunist', 'shoaler', 'grazer', 'hunter', 'shoaler', 'opportunist', 'grazer', 'hunter', 'shoaler'];
+  function spawnInitialPopulation(config = {}) {
+    const count = config.count ?? SIM.initialFish;
+    const foodCount = config.foodCount ?? SIM.initialFood;
+    const juvenileRatio = clamp(config.juvenileRatio ?? 0.18, 0, 0.85);
+    const lineup = config.lineup && config.lineup.length ? config.lineup : DEFAULT_LINEUP;
     for (let i = 0; i < count; i++) {
       const point = randomOpenWaterPoint(WORLD.spawnTop, waterLaneY(0.78), scaleWorld(7), true);
+      const stage = randSim() < juvenileRatio ? 'juvenile' : 'adult';
       g.fish.push(
         makeFish({
           archetype: lineup[i % lineup.length],
+          stage,
           x: point.x,
           y: point.y,
           energy: randSim(46, 74),
@@ -2804,12 +3208,13 @@
         }),
       );
     }
-    for (let i = 0; i < SIM.initialFood; i++) {
+    for (let i = 0; i < foodCount; i++) {
       spawnFood(randSim(WORLD.edgePad, W - WORLD.edgePad), randSim(WORLD.foodTop, WORLD.waterBottom));
     }
   }
 
   function resetSimulation() {
+    const scenario = currentScenario();
     nextRunSeed();
     rebuildHabitat(currentSeed);
     nextLineageId = 1;
@@ -2817,6 +3222,7 @@
     selectedFishId = null;
     highlightedLineage = null;
     g = newSimulation();
+    g.run.scenario = currentScenarioId;
     refreshFormationCache();
     paused = false;
     pauseReason = '';
@@ -2826,9 +3232,12 @@
     input.used = Object.create(null);
     input.pointer.tapped = false;
     resetHistory();
-    spawnInitialPopulation();
+    resetReplayState();
+    spawnInitialPopulation(scenario.population);
+    applyScenarioEnvironment(scenario);
     g.avgEnergy = g.fish.length ? g.fish.reduce((sum, fish) => sum + fish.energy, 0) / g.fish.length : 0;
     sampleHistory(HISTORY.sampleEvery);
+    captureReplaySnapshot('auto', 'Live seed');
     simAccumulator = 0;
     uiClock = 0;
     last = performance.now();
@@ -3576,6 +3985,7 @@
     resolveInteractions();
     updateParticles(dt);
     sampleHistory(dt);
+    sampleReplay(dt);
 
     if (g.fish.length <= SIM.immigrationThreshold) {
       g.sp.migrant -= dt;
@@ -3693,10 +4103,11 @@
 
     drawText(c, 'PAUSED', W / 2, scaleWorld(70), COL.foam, 2, 'center');
     if (pauseReason === 'focus') drawText(c, 'FOCUS LOST', W / 2, scaleWorld(88), COL.gray, 1, 'center');
+    else if (pauseReason === 'replay') drawText(c, 'REPLAY SNAPSHOT', W / 2, scaleWorld(88), COL.gray, 1, 'center');
     drawText(c, `SEED ${g.run.seed} ${seasonLabel(g.env.season)}`, W / 2, scaleWorld(98), COL.foam, 1, 'center');
     drawText(c, `${disturbanceLabel().toUpperCase()} • FISH ${g.fish.length} FOOD ${g.food.length} AVG E ${Math.round(g.avgEnergy)}`, W / 2, scaleWorld(108), COL.gray, 1, 'center');
-    drawText(c, 'P / SPACE TO RESUME  R FOR NEXT SEED', W / 2, scaleWorld(118), `rgba(168,230,255,${0.25 + 0.65 * pulse})`, 1, 'center');
-    drawText(c, 'USE THE CONTROL DOCK TO TUNE PRESSURE', W / 2, scaleWorld(128), COL.gray, 1, 'center');
+    drawText(c, 'P / SPACE TO RESUME  R FOR NEXT SEED  B TO BOOKMARK', W / 2, scaleWorld(118), `rgba(168,230,255,${0.25 + 0.65 * pulse})`, 1, 'center');
+    drawText(c, 'USE THE CONTROL DOCK FOR SCENARIOS, REWINDS, AND PRESSURE', W / 2, scaleWorld(128), COL.gray, 1, 'center');
   }
 
   function renderFoodMap(c) {
@@ -4403,6 +4814,11 @@
       }
     }
 
+    if (consumePressed('KeyB') && document.activeElement !== UI.seedInput) {
+      addBookmark();
+      SFX.play('ui');
+    }
+
     if (consumePressed('KeyP', 'Space', 'Escape') || input.pointer.tapped) {
       togglePause();
     }
@@ -4432,6 +4848,10 @@
     runAudit: (seconds) => runAudit(seconds),
     setSeed: (seed) => setSeed(seed),
     applyPreset: (id) => applyPreset(id),
+    applyScenario: (id) => applyScenario(id),
+    rewindReplay: (seconds) => rewindReplay(seconds),
+    returnToLive: () => returnToLive(),
+    bookmarkIds: () => REPLAY.bookmarks.map((entry) => entry.id),
     setView: (key, value) => {
       if (!(key in VIEW)) return { ...VIEW };
       VIEW[key] = value == null ? !VIEW[key] : Boolean(value);

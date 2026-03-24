@@ -497,7 +497,7 @@ body::before {
 }
 
 #history-panel {
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr);
   min-height: 0;
   align-content: stretch;
 }
@@ -575,6 +575,10 @@ body::before {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.scenario-row {
+  margin-top: 2px;
 }
 
 .preset-tag {
@@ -728,6 +732,70 @@ input[type='range']::-moz-range-thumb {
   font-size: 0.92rem;
 }
 
+.replay-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#bookmark-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.bookmark-chip {
+  min-width: 190px;
+  max-width: 240px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(168, 230, 255, 0.10);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(9, 18, 38, 0.90), rgba(5, 10, 20, 0.72));
+  color: var(--text);
+  text-align: left;
+}
+
+button.bookmark-chip {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+button.bookmark-chip:hover,
+button.bookmark-chip:focus-visible {
+  border-color: rgba(168, 230, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(109, 220, 143, 0.18);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+button.bookmark-chip[data-active='true'] {
+  border-color: rgba(109, 220, 143, 0.28);
+  box-shadow: 0 0 0 1px rgba(109, 220, 143, 0.16);
+}
+
+.bookmark-chip strong {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.bookmark-chip small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.bookmark-empty {
+  min-width: 100%;
+}
+
 #event-stream {
   display: grid;
   gap: 10px;
@@ -764,6 +832,10 @@ input[type='range']::-moz-range-thumb {
 
 .event-item[data-kind='reseed'] {
   box-shadow: inset 0 0 0 1px rgba(255, 230, 109, 0.12);
+}
+
+.event-item[data-kind='bookmark'] {
+  box-shadow: inset 0 0 0 1px rgba(123, 217, 255, 0.12);
 }
 
 .event-item[data-kind='immigrant'] {
@@ -1080,6 +1152,16 @@ input[type='range']::-moz-range-thumb {
 
   #split-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #bookmark-list {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .bookmark-chip {
+    min-width: 0;
+    max-width: none;
   }
 
   #status-strip {

@@ -6,6 +6,20 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- a named scenario lab with `Baseline Drift`, `Nursery Pressure`, `Predator Bloom`, `Lean Recovery`, and `Murky Shock`
+- replay and bookmark controls for the last 45 seconds of tank history, including rewind and live-return flow
+
+### Changed
+
+- observatory docs to explain scenario bundles, replay controls, and review workflow for the upcoming `v0.2.0` minor
+- scenario selection in the control drawer so it immediately reseeds the tank into the chosen experiment setup and returns focus to the simulation
+
+### Fixed
+
+- replay return flow so `Return Live` restores the running branch instead of leaving the tank in a stale paused state
+
 ## [0.1.3] - 2026-03-24
 
 ### Added

@@ -125,6 +125,17 @@
                 <small>Speeds up or slows down bloom and lean cycles.</small>
               </label>
             </div>
+            <div class="preset-row scenario-row" aria-label="Experiment scenarios">
+              <span class="preset-tag">Scenario Lab</span>
+              <div class="preset-buttons">
+                <button type="button" class="preset-button" data-scenario="baseline">Baseline</button>
+                <button type="button" class="preset-button" data-scenario="nursery_pressure">Nursery</button>
+                <button type="button" class="preset-button" data-scenario="predator_bloom">Predator Bloom</button>
+                <button type="button" class="preset-button" data-scenario="lean_recovery">Lean Recovery</button>
+                <button type="button" class="preset-button" data-scenario="murky_shock">Murky Shock</button>
+              </div>
+            </div>
+            <p id="scenario-note" class="card-note">Baseline drift. Balanced pressure and a standard seeded population for comparing routes, wakes, and slow turnover.</p>
             <div class="preset-row" aria-label="Experiment presets">
               <span class="preset-tag">Presets</span>
               <div class="preset-buttons">
@@ -166,6 +177,19 @@
             </div>
             <canvas id="history" width="300" height="110" aria-label="Simulation history chart"></canvas>
             <p id="history-note" class="card-note">Sampling the tank...</p>
+            <div class="replay-toolbar" aria-label="Replay and bookmark controls">
+              <button type="button" class="chrome-button chrome-subtle" id="replay-bookmark">Bookmark [B]</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-short">Rewind 15s</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-long">Rewind 30s</button>
+              <button type="button" class="chrome-button chrome-subtle" id="replay-live">Return Live</button>
+            </div>
+            <p id="replay-note" class="card-note">Recording the last 45 seconds of the current run for quick rewinds and bookmarks.</p>
+            <div id="bookmark-list" aria-live="polite">
+              <article class="bookmark-chip bookmark-empty">
+                <strong>No bookmarks yet</strong>
+                <small>Bookmark a live moment to pin a seed, time, and population snapshot for fast return.</small>
+              </article>
+            </div>
             <div class="card-head compact-head">
               <div>
                 <span class="panel-kicker">Timeline</span>

@@ -41,6 +41,23 @@ Presets:
 - `Bloom`
 - `Volatile`
 
+## Scenario Bundles
+
+The scenario lab layers named starting conditions on top of the base tuning system.
+
+- `Baseline Drift`: comparison baseline with the standard lineup
+- `Nursery Pressure`: more juveniles and shelter-biased pressure
+- `Predator Bloom`: carnivore-heavy opening population and richer bloom lanes
+- `Lean Recovery`: reduced starting population with recovery plumes after a crash
+- `Murky Shock`: seeded murk disturbance and compressed visibility from the first seconds
+
+Scenarios change:
+
+- the starting seed
+- live tuning multipliers
+- opening population mix and juvenile ratio
+- seeded nutrient patches or disturbances
+
 ## Important Internal Parameters
 
 The baseline values live in the `SIM` object near the top of [`game.js`](../game.js).
@@ -61,6 +78,7 @@ The run is deterministic by seed.
 
 - `Next Seed` advances through the built-in deterministic sequence
 - the seed input can load a specific value directly
+- scenario buttons can replace the seed and starting conditions as a named bundle
 - the same seed should reproduce the same layout and general behavior on the same code revision
 
 ## Seed Audit
