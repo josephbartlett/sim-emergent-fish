@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Fishtank Ecology (VGA)</title>
+    <meta name="description" content="A bounded VGA-style fish simulation for observing emergent behavior under resource pressure." />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="wrap">
+      <section id="shell" aria-label="Fishtank emergence lab">
+        <header class="panel" id="topbar">
+          <div class="title-block">
+            <p class="eyebrow">AUTONOMOUS ECOLOGY OBSERVATORY</p>
+            <h1>Fishtank Emergence Lab</h1>
+            <p class="lede">A broader bounded ecology of grazers, shoals, opportunists, and hunters flowing around shelves, weed screens, and current breaks.</p>
+          </div>
+          <div id="status-strip" aria-live="polite">
+            <article class="metric-card">
+              <span class="metric-label">Population</span>
+              <strong id="stat-fish">0 fish</strong>
+              <small id="stat-dominant">Dominant archetype pending</small>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Resources</span>
+              <strong id="stat-food">0 food</strong>
+              <small id="stat-season">Season shift</small>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Energy</span>
+              <strong id="stat-energy">0 avg energy</strong>
+              <small id="stat-pressure">Baseline pressure</small>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Turnover</span>
+              <strong id="stat-turnover">0 births / 0 deaths</strong>
+              <small id="stat-turnover-note">Waiting for the first cycle</small>
+            </article>
+          </div>
+        </header>
+
+        <section class="panel" id="tank-panel">
+          <div class="panel-head">
+            <div>
+              <span class="panel-kicker">Live Tank</span>
+              <h2>Observe the local rules in motion</h2>
+            </div>
+          </div>
+          <div id="tank-toolbar">
+            <div id="top-actions">
+              <button type="button" class="chrome-button" id="pause-toggle">Pause [P]</button>
+              <button type="button" class="chrome-button" id="reset-sim">Next Seed [R]</button>
+              <button type="button" class="chrome-button" id="controls-toggle">Controls [T]</button>
+              <button type="button" class="chrome-button" id="focus-mode">Focus [C]</button>
+              <label class="seed-control" for="seed-input">
+                <span>Seed</span>
+                <input id="seed-input" type="number" min="1" step="1" inputmode="numeric" value="240311" />
+              </label>
+              <button type="button" class="chrome-button" id="apply-seed">Load Seed</button>
+            </div>
+            <div id="tank-observation" aria-live="polite">
+              <article class="observation-pill compact">
+                <span class="overlay-label">Run</span>
+                <strong id="overlay-run">Seed 0</strong>
+                <small id="overlay-run-note">Balanced baseline</small>
+              </article>
+              <article class="observation-pill observation-wide">
+                <span class="overlay-label">Watch</span>
+                <strong id="overlay-watch">Stabilizing</strong>
+                <small id="overlay-watch-note">Routes and shelters are still forming</small>
+              </article>
+            </div>
+          </div>
+          <div id="tank-stage">
+            <canvas id="game" width="320" height="200" aria-label="Fishtank ecology simulation canvas"></canvas>
+          </div>
+        </section>
+
+        <section id="bottom-dock">
+          <section class="panel dock-card" id="control-panel">
+            <div class="card-head">
+              <div>
+                <span class="panel-kicker">Controls</span>
+                <h2>Tune the constraints</h2>
+              </div>
+              <div class="drawer-head">
+                <p>Real-time pressure controls.</p>
+                <button type="button" class="chrome-button chrome-subtle" id="controls-close">Close [T]</button>
+              </div>
+            </div>
+            <div class="control-grid">
+              <label class="control" for="control-food">
+                <span class="control-label-row">
+                  <span>Food Flow</span>
+                  <strong id="control-food-value">1.00x</strong>
+                </span>
+                <input id="control-food" type="range" min="65" max="185" value="100" step="1" />
+                <small>Higher values raise food caps and shorten spawn intervals.</small>
+              </label>
+              <label class="control" for="control-metabolism">
+                <span class="control-label-row">
+                  <span>Metabolism</span>
+                  <strong id="control-metabolism-value">1.00x</strong>
+                </span>
+                <input id="control-metabolism" type="range" min="70" max="150" value="100" step="1" />
+                <small>Controls how quickly movement and lean seasons drain energy.</small>
+              </label>
+              <label class="control" for="control-fertility">
+                <span class="control-label-row">
+                  <span>Fertility</span>
+                  <strong id="control-fertility-value">1.00x</strong>
+                </span>
+                <input id="control-fertility" type="range" min="75" max="135" value="100" step="1" />
+                <small>Higher fertility lowers the energy threshold needed to split.</small>
+              </label>
+              <label class="control" for="control-season">
+                <span class="control-label-row">
+                  <span>Season Pace</span>
+                  <strong id="control-season-value">1.00x</strong>
+                </span>
+                <input id="control-season" type="range" min="35" max="200" value="100" step="1" />
+                <small>Speeds up or slows down bloom and lean cycles.</small>
+              </label>
+            </div>
+            <div class="preset-row" aria-label="Experiment presets">
+              <span class="preset-tag">Presets</span>
+              <div class="preset-buttons">
+                <button type="button" class="preset-button" data-preset="scarce">Scarce</button>
+                <button type="button" class="preset-button" data-preset="balanced">Balanced</button>
+                <button type="button" class="preset-button" data-preset="bloom">Bloom</button>
+                <button type="button" class="preset-button" data-preset="volatile">Volatile</button>
+              </div>
+            </div>
+            <p id="preset-note" class="card-note">Balanced baseline. Good for watching slow ecological turnover.</p>
+            <div class="preset-row view-row" aria-label="View toggles">
+              <span class="preset-tag">View</span>
+              <div class="preset-buttons">
+                <button type="button" class="preset-button" data-view="trails">Trails</button>
+                <button type="button" class="preset-button" data-view="foodMap">Food Map</button>
+                <button type="button" class="preset-button" data-view="current">Current</button>
+              </div>
+            </div>
+            <p class="card-note">Toggle lineage trails, nutrient density, and current arrows to inspect lee wakes, shelter pockets, and feeding lanes around formations.</p>
+            <div class="shortcut-row">
+              <span>P / Space / Esc pause</span>
+              <span>R / Enter advance to the next seed</span>
+              <span>T toggles the control drawer</span>
+              <span>Tap the tank to pause</span>
+            </div>
+          </section>
+
+          <section class="panel dock-card" id="history-panel">
+            <div class="card-head">
+              <div>
+                <span class="panel-kicker">Trace</span>
+                <h2>Population history</h2>
+              </div>
+              <p>Fish, food, and average energy.</p>
+            </div>
+            <canvas id="history" width="300" height="110" aria-label="Simulation history chart"></canvas>
+            <div class="legend-row" aria-hidden="true">
+              <span class="legend-pill fish">Fish</span>
+              <span class="legend-pill food">Food</span>
+              <span class="legend-pill energy">Energy</span>
+            </div>
+            <p id="history-note" class="card-note">Sampling the tank...</p>
+            <div class="card-head compact-head">
+              <div>
+                <span class="panel-kicker">Timeline</span>
+                <h2>Recent events</h2>
+              </div>
+              <p>Births, deaths, predations, disturbances, and resets.</p>
+            </div>
+            <div id="event-stream" aria-live="polite">
+              <article class="event-item">
+                <span class="event-time">T+0.0s</span>
+                <strong>Waiting for the first event</strong>
+                <small>The tank will start filling this timeline as soon as something notable happens.</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel dock-card" id="insight-panel">
+            <div class="card-head">
+              <div>
+                <span class="panel-kicker">Inspector</span>
+                <h2>Inspect a fish</h2>
+              </div>
+              <p>Click a fish in the tank to pin its state, lineage, and current intent.</p>
+            </div>
+            <div id="inspector-panel">
+              <div class="inspector-head">
+                <div>
+                  <span class="panel-kicker" id="inspect-kicker">Selection</span>
+                  <h3 id="inspect-name">No fish selected</h3>
+                </div>
+                <div class="inspector-actions">
+                  <button type="button" class="chrome-button chrome-subtle" id="inspect-highlight">Highlight [L]</button>
+                  <button type="button" class="chrome-button chrome-subtle" id="inspect-clear">Clear [X]</button>
+                </div>
+              </div>
+              <p id="inspect-summary" class="card-note">Click any fish in the tank to pin it. Empty-water taps still pause the run.</p>
+              <div id="inspect-grid" aria-label="Selected fish stats">
+                <article class="inspect-chip">
+                  <span>Archetype</span>
+                  <strong id="inspect-archetype">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Stage</span>
+                  <strong id="inspect-stage">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Energy</span>
+                  <strong id="inspect-energy">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Hunger</span>
+                  <strong id="inspect-hunger">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Satiation</span>
+                  <strong id="inspect-satiation">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Lineage</span>
+                  <strong id="inspect-lineage">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Generation</span>
+                  <strong id="inspect-generation">-</strong>
+                </article>
+                <article class="inspect-chip">
+                  <span>Intent</span>
+                  <strong id="inspect-intent">-</strong>
+                </article>
+              </div>
+              <p id="inspect-target" class="card-note">No fish selected.</p>
+              <p id="inspect-lineage-note" class="card-note">Lineage highlighting is off.</p>
+            </div>
+            <div class="callout-stack">
+              <p class="callout" id="season-callout">Seasonal pressure is stable.</p>
+              <p class="callout" id="pressure-callout">Energy turnover is still settling.</p>
+              <p class="callout" id="cycle-callout">Waiting for the first visible cycle.</p>
+            </div>
+            <div id="archetype-grid" aria-label="Archetype counts">
+              <article class="archetype-chip grazer">
+                <span>Grazer</span>
+                <strong id="arch-grazer">0</strong>
+              </article>
+              <article class="archetype-chip shoaler">
+                <span>Shoal</span>
+                <strong id="arch-shoaler">0</strong>
+              </article>
+              <article class="archetype-chip opportunist">
+                <span>Opport</span>
+                <strong id="arch-opportunist">0</strong>
+              </article>
+              <article class="archetype-chip hunter">
+                <span>Hunter</span>
+                <strong id="arch-hunter">0</strong>
+              </article>
+            </div>
+            <div id="split-grid" aria-label="Population splits">
+              <article class="split-chip">
+                <span>Juveniles</span>
+                <strong id="split-juvenile">0</strong>
+              </article>
+              <article class="split-chip">
+                <span>Adults</span>
+                <strong id="split-adult">0</strong>
+              </article>
+              <article class="split-chip">
+                <span>Herbivores</span>
+                <strong id="split-herbivore">0</strong>
+              </article>
+              <article class="split-chip">
+                <span>Carnivores</span>
+                <strong id="split-carnivore">0</strong>
+              </article>
+            </div>
+            <p id="disturbance-note" class="card-note">Calm water. Trails and overlays expose the stable lanes, refuges, and food pockets.</p>
+          </section>
+        </section>
+
+        <div id="noscript">
+          <p>Fishtank needs JavaScript enabled.</p>
+        </div>
+      </section>
+      <button type="button" id="control-scrim" aria-label="Close control drawer"></button>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>

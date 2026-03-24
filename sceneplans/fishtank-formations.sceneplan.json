@@ -1,0 +1,81 @@
+{
+  "project": {
+    "name": "Fishtank Formation Study",
+    "item_resolution": "64x64",
+    "default_quality": "low",
+    "default_model": "gpt-image-1.5",
+    "item_defaults": {
+      "size": "1024x1024",
+      "background": "transparent",
+      "export_modes": ["ega16", "mono"],
+      "final_mode": "ega16"
+    }
+  },
+  "items": [
+    {
+      "id": "item_aquarium_stone_arch",
+      "title": "Aquarium Stone Arch",
+      "template": "flat_vga_item",
+      "fields": {
+        "subject": "a bottom-anchored aquarium cave arch with a broad cave mouth for fish to pass through",
+        "secondary_elements": "sand-dusted base, chipped stone, mossy edges, dark cave interior, asymmetrical silhouette",
+        "mood": "sheltering and sturdy",
+        "lighting": "soft top-left aquarium light",
+        "camera": "orthographic side sprite view",
+        "palette_style_notes": "cool slate blues, muted green moss, warm sandy highlights"
+      }
+    },
+    {
+      "id": "item_aquarium_boulder_spine",
+      "title": "Aquarium Boulder Spine",
+      "template": "flat_vga_item",
+      "fields": {
+        "subject": "a bottom-anchored ridge of aquarium boulders rising out of the gravel as a partial current break",
+        "secondary_elements": "stacked stones, small gaps, worn algae patches, sandy base, one taller center stone",
+        "mood": "weathered and protective",
+        "lighting": "soft overhead tank light",
+        "camera": "orthographic side sprite view",
+        "palette_style_notes": "deep blue-gray stone with muted teal algae and pale edges"
+      }
+    },
+    {
+      "id": "item_aquarium_kelp_screen",
+      "title": "Aquarium Kelp Screen",
+      "template": "flat_vga_item",
+      "fields": {
+        "subject": "a rooted kelp and reed screen growing up from aquarium gravel so fish can tuck behind it",
+        "secondary_elements": "ribbon fronds, gravel base, a few broken leaves, clear outer silhouette",
+        "mood": "soft shelter",
+        "lighting": "gentle shallow-water glow",
+        "camera": "orthographic side sprite view",
+        "palette_style_notes": "sea greens, olive shadows, pale foam highlights"
+      }
+    },
+    {
+      "id": "item_aquarium_driftwood_snag",
+      "title": "Aquarium Driftwood Snag",
+      "template": "flat_vga_item",
+      "fields": {
+        "subject": "a forked aquarium driftwood snag rooted in the substrate with a narrow calm pocket behind it",
+        "secondary_elements": "partially buried base, gnarled branches, attached moss tufts, one shaded hollow",
+        "mood": "wild and slightly dangerous",
+        "lighting": "angled top light with deeper lower shadows",
+        "camera": "orthographic side sprite view",
+        "palette_style_notes": "rich brown wood, dark hollows, mossy green accents, sandy rim light"
+      }
+    },
+    {
+      "id": "item_aquarium_bug_castle",
+      "title": "Aquarium Bug Castle",
+      "template": "flat_vga_item",
+      "fields": {
+        "subject": "a ceramic aquarium bug castle rising from the gravel with arches and hidey holes for small fish",
+        "secondary_elements": "rounded towers, dark openings, sandy base, chipped glaze, a slightly whimsical silhouette",
+        "mood": "curious and sheltering",
+        "lighting": "soft tank light from above",
+        "camera": "orthographic side sprite view",
+        "palette_style_notes": "warm clay reds, muted brown shadows, sandy highlights, tiny teal moss accents"
+      }
+    }
+  ]
+}

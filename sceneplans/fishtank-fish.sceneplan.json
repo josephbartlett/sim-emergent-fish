@@ -1,0 +1,142 @@
+{
+  "project": {
+    "name": "Fishtank Fish Sprites",
+    "item_resolution": "32x32",
+    "default_quality": "low",
+    "default_model": "gpt-image-1.5",
+    "item_defaults": {
+      "size": "1024x1024",
+      "background": "transparent",
+      "export_modes": ["ega16", "mono"],
+      "final_mode": "ega16"
+    }
+  },
+  "items": [
+    {
+      "id": "item_fish_juvenile",
+      "title": "Juvenile Fry",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a tiny aquarium juvenile fish in side profile with a rounded head, oversized eye, and short tail",
+        "secondary_elements": "slim fry body, soft dorsal nub, one bright eye highlight, clear tail notch",
+        "scale_notes": "readable at 32x32 with a compact silhouette, one strong body mass, and only a few interior cuts",
+        "mood": "alert and vulnerable",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, pale mint body, teal shadows, cream belly, dark outline, one bright highlight"
+      }
+    },
+    {
+      "id": "item_fish_juvenile_grazer",
+      "title": "Juvenile Grazer",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a tiny juvenile grazer fish in side profile with a rounded leaf-shaped body and soft fins",
+        "secondary_elements": "small mouth, bright eye, soft dorsal nub, short rounded tail",
+        "scale_notes": "readable at 32x32 with a compact herbivore silhouette and very limited interior detail",
+        "mood": "cautious and feeding-focused",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, pale moss body, yellow-green highlights, teal shadows, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_juvenile_shoaler",
+      "title": "Juvenile Shoaler",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a tiny juvenile shoaling fish in side profile with a slim body and neat forked tail",
+        "secondary_elements": "bright eye, narrow body, small dorsal fin, one pale belly streak",
+        "scale_notes": "readable at 32x32 with a narrow fast silhouette and high contrast around the head and tail",
+        "mood": "quick and skittish",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, cool aqua body, pale cyan highlight, deep navy shadow, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_juvenile_opportunist",
+      "title": "Juvenile Opportunist",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a tiny juvenile opportunist fish in side profile with a compact oval body and slightly assertive jaw",
+        "secondary_elements": "bright eye, deep belly, short fan tail, one darker cheek mark",
+        "scale_notes": "readable at 32x32 with a stout silhouette and only a few interior cuts",
+        "mood": "curious and opportunistic",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, warm amber body, pale tan highlights, olive shadows, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_juvenile_hunter",
+      "title": "Juvenile Hunter",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a tiny juvenile hunter fish in side profile with a baby shark silhouette, pointed snout, and strong tail",
+        "secondary_elements": "small dorsal fin, bright eye, lean body, sharp tail split, clear predator profile",
+        "scale_notes": "readable at 32x32 with a compact shark-like silhouette and only a few strong shading cuts",
+        "mood": "young but predatory",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, cool gray body, pale silver highlights, deep navy shadows, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_grazer",
+      "title": "Grazer Fish",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a small aquarium grazer fish in side profile with a leaf-shaped body, blunt nose, and rounded fins",
+        "secondary_elements": "soft dorsal fin, small mouth, broad tail, subtle belly break, one bright eye highlight",
+        "scale_notes": "readable at 32x32 with a broad body silhouette and just a few internal shading cuts",
+        "mood": "calm and feeding-focused",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, moss green body, yellow-green highlights, teal shadow ramp, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_shoaler",
+      "title": "Shoaler Fish",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a slim aquarium shoaling fish in side profile with a tapered body and forked tail",
+        "secondary_elements": "narrow body, neat dorsal fin, bright eye, thin tail split, one pale belly accent",
+        "scale_notes": "readable at 32x32 with a narrow fast silhouette and high contrast around the head and tail",
+        "mood": "quick and social",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, cool teal-blue body, pale aqua highlight, deep navy shadow, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_opportunist",
+      "title": "Opportunist Fish",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a sturdy mid-sized aquarium fish in side profile with an oval body, confident jaw, and fan tail",
+        "secondary_elements": "deep belly, short dorsal fin, bright eye, one darker cheek patch, broad tail",
+        "scale_notes": "readable at 32x32 with a stout central silhouette and limited interior texture",
+        "mood": "curious and adaptable",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, warm amber body, muted olive shadow, pale tan highlights, dark outline"
+      }
+    },
+    {
+      "id": "item_fish_hunter",
+      "title": "Hunter Fish",
+      "template": "tiny_sprite_item",
+      "fields": {
+        "subject": "a larger aquarium hunter fish in side profile with a sharper snout, deeper tail, and longer body",
+        "secondary_elements": "angular dorsal fin, bright eye, strong jawline, powerful forked tail, lean predator silhouette",
+        "scale_notes": "readable at 32x32 with a long pointed profile, big tail shape, and only a few high-contrast interior cuts",
+        "mood": "focused and predatory",
+        "lighting": "single top-left aquarium light",
+        "camera": "orthographic side sprite view facing right",
+        "palette_style_notes": "consistent fishtank family palette, burnt orange body, rust-red shadows, pale gold highlights, dark outline"
+      }
+    }
+  ]
+}

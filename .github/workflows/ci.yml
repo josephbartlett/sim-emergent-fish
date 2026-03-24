@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - sim-emergent-fish
+
+permissions:
+  contents: read
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify required repo files
+        run: |
+          test -f README.md
+          test -f AGENTS.md
+          test -f CONTRIBUTING.md
+          test -f RELEASING.md
+          test -f CHANGELOG.md
+          test -f VERSION
+          test -f LICENSE
+          grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' VERSION
+
+      - name: JavaScript syntax check
+        run: node --check game.js
+
+      - name: HTTP smoke check
+        run: |
+          python3 -m http.server 8000 >/tmp/fishtank-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          sleep 2
+          curl -I --fail http://127.0.0.1:8000/index.html
+          curl -I --fail http://127.0.0.1:8000/seed-audit.html

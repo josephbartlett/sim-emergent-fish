@@ -1,0 +1,22 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+
+# Python
+__pycache__/
+*.pyc
+
+# Node / tooling
+node_modules/
+coverage/
+dist/
+
+# Local exports
+*.zip
