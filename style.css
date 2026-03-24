@@ -497,7 +497,8 @@ body::before {
 }
 
 #history-panel {
-  align-content: start;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  align-content: stretch;
 }
 
 #shell[data-cinematic='true'] {
@@ -729,7 +730,8 @@ input[type='range']::-moz-range-thumb {
 #event-stream {
   display: grid;
   gap: 10px;
-  max-height: 300px;
+  min-height: 0;
+  height: 100%;
   overflow: auto;
   padding-right: 2px;
 }
