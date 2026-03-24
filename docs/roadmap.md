@@ -4,7 +4,7 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest release: `v0.1.3`
+Latest tagged release: `v0.1.3`
 
 Current emphasis:
 
@@ -54,9 +54,8 @@ Implemented on the current feature branch:
 
 Still worth reviewing before release:
 
-- UI polish around the new scenario and replay surfaces
 - review screenshots for the scenario lab and replay flow
-- a final regression pass on scenario starts and bookmark restore behavior
+- release prep: version bump, tag, and release notes once the branch is approved
 
 ## v0.3.0
 

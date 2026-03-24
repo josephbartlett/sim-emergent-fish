@@ -10,7 +10,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - a named scenario lab with `Baseline Drift`, `Nursery Pressure`, `Predator Bloom`, `Lean Recovery`, and `Murky Shock`
 - replay and bookmark controls for the last 45 seconds of tank history, including rewind and live-return flow
-- a replay scrubber in the history card for stepping through recent snapshots without relying only on fixed rewind buttons
+- a replay scrubber in the tank panel for stepping through recent snapshots without relying only on fixed rewind buttons
 - a Playwright-backed replay stress check under `scripts/check_replay_stress.py` for bookmarks, scrubber motion, rewind buttons, branch resumes, and live return
 
 ### Changed

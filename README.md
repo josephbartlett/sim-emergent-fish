@@ -1,8 +1,10 @@
 # Fishtank Ecology (VGA)
 
-Current version: `v0.1.3`
-
 Fishtank Ecology is a browser-local emergent behavior observatory. It runs a bounded aquarium simulation with autonomous fish, deterministic seeds, habitat formations, current fields, resource pressure, and inspection tools for watching local rules turn into visible patterns.
+
+The latest tagged release is recorded in [VERSION](./VERSION) and [CHANGELOG.md](./CHANGELOG.md). In-progress work for the next release stays under `Unreleased` in the changelog and [docs/roadmap.md](./docs/roadmap.md).
+
+![Tank overview](./docs/screenshots/readme-tank-overview.png)
 
 ## Quick Start
 
@@ -15,7 +17,7 @@ Open:
 - `http://localhost:8000`
 - `http://localhost:8000/seed-audit.html`
 
-Minimal sanity checks:
+With the server running, a minimal sanity pass is:
 
 ```bash
 node --check game.js
@@ -25,7 +27,7 @@ python3 scripts/check_seed_audit.py
 python3 scripts/check_replay_stress.py
 ```
 
-## What It Includes
+## Highlights
 
 - autonomous grazers, shoalers, opportunists, and hunters with local sensing and simple intent rules
 - deterministic seeded tanks with bottom-mounted formations, wake zones, and current variation
@@ -33,16 +35,16 @@ python3 scripts/check_replay_stress.py
 - observatory UI with focus mode, fish inspector, lineage highlighting, event timeline, scenario lab controls, replay bookmarks, and seed audit tools
 - Asset Forge-backed fish and habitat art with fallback rendering in `game.js`
 
-## Docs Map
+## Docs
 
-Simulation and usage docs:
+Simulation and usage:
 
 - [docs/observatory.md](./docs/observatory.md): controls, overlays, inspector behavior, and what to watch
 - [docs/simulation.md](./docs/simulation.md): ecology model, seeds, runtime parameters, and audit workflow
 - [docs/assets.md](./docs/assets.md): Asset Forge sceneplans, generated assets, and fallback behavior
 - [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and next major feature tracks
 
-Repository and release docs:
+Repository workflow:
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md): branch, commit, PR, and verification expectations
 - [RELEASING.md](./RELEASING.md): SemVer policy, tagging flow, and release metadata contract
@@ -51,25 +53,4 @@ Repository and release docs:
 - [LICENSE](./LICENSE): MIT license
 - [VERSION](./VERSION): current SemVer value
 
-## Screenshots
-
-![Tank overview](./docs/screenshots/readme-tank-overview.png)
-
-Current README hero shot: bottom-mounted formations, mixed archetypes, and a mid-run tank state without the surrounding UI chrome.
-
-The tracked README image lives under [`docs/screenshots`](./docs/screenshots).
-
-## Versioning
-
-This repository uses [Semantic Versioning](https://semver.org/) with annotated tags in the form `vX.Y.Z`.
-
-- `MAJOR`: incompatible workflow, release-contract, or format changes
-- `MINOR`: backward-compatible features and observability additions
-- `PATCH`: backward-compatible fixes, tuning, and docs/hygiene updates
-
-When a release is tagged and pushed, always return:
-
-- `Title/Name`: `Fishtank Ecology vX.Y.Z`
-- `Description`: markdown release notes matching the tag
-
-The full checklist lives in [RELEASING.md](./RELEASING.md).
+Tracked screenshots live under [docs/screenshots](./docs/screenshots). Release policy, versioning, and release-note format live in [RELEASING.md](./RELEASING.md).
