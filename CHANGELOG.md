@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-24
+
 ### Added
 
 - a named scenario lab with `Baseline Drift`, `Nursery Pressure`, `Predator Bloom`, `Lean Recovery`, and `Murky Shock`
@@ -15,7 +17,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ### Changed
 
-- observatory docs to explain scenario bundles, replay controls, and review workflow for the upcoming `v0.2.0` minor
+- observatory docs to explain scenario bundles, replay controls, and review workflow for the `v0.2.0` release
 - scenario selection in the control drawer so it immediately reseeds the tank into the chosen experiment setup and returns focus to the simulation
 - repo verification docs and CI to include the replay stress check alongside the seed audit
 

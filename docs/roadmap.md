@@ -4,12 +4,12 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest tagged release: `v0.1.3`
+Latest tagged release: `v0.2.0`
 
 Current emphasis:
 
 - keep `main` releaseable
-- prepare `v0.2.0` as a stronger experiment platform, not a scripted game
+- prepare `v0.3.0` as a stronger spatial ecology release, not a scripted game
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -45,17 +45,17 @@ Likely work:
 
 Theme: scenario lab and replay.
 
-Implemented on the current feature branch:
+Delivered in the latest tagged release:
 
 - named experiment scenarios
 - saved seed plus preset bundles
 - bookmarks and short replay for recent tank history
 - faster compare-and-observe workflow through scenario resets and live-return playback
 
-Still worth reviewing before release:
+Follow-on notes:
 
-- review screenshots for the scenario lab and replay flow
-- release prep: version bump, tag, and release notes once the branch is approved
+- review screenshots for a future demo or release gallery refresh
+- keep replay and scenario UX under regression coverage as `v0.3.0` work lands
 
 ## v0.3.0
 
