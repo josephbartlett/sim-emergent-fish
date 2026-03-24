@@ -36,6 +36,9 @@
   if (noscript) noscript.remove();
 
   const UI = {
+    bottomDock: document.getElementById('bottom-dock'),
+    historyPanel: document.getElementById('history-panel'),
+    insightPanel: document.getElementById('insight-panel'),
     statFish: document.getElementById('stat-fish'),
     statDominant: document.getElementById('stat-dominant'),
     statFood: document.getElementById('stat-food'),
@@ -115,13 +118,38 @@
     canvas.style.width = `${W * scale}px`;
     canvas.style.height = `${H * scale}px`;
   }
+
+  let syncedDockHeight = 0;
+  function syncDockHeights() {
+    if (!UI.historyPanel || !UI.insightPanel || !UI.bottomDock) return;
+    const cinematicActive = shell && shell.dataset.cinematic === 'true';
+    if (window.innerWidth <= 1200 || cinematicActive) {
+      if (UI.historyPanel.style.height) UI.historyPanel.style.height = '';
+      syncedDockHeight = 0;
+      return;
+    }
+    const target = Math.round(UI.insightPanel.getBoundingClientRect().height);
+    if (target <= 0) return;
+    if (Math.abs(target - syncedDockHeight) < 1) return;
+    UI.historyPanel.style.height = `${target}px`;
+    syncedDockHeight = target;
+  }
+
   window.addEventListener('resize', resizeCanvas, { passive: true });
+  window.addEventListener('resize', syncDockHeights, { passive: true });
   let stageObserver = null;
   if (typeof ResizeObserver !== 'undefined' && tankStage) {
     stageObserver = new ResizeObserver(resizeCanvas);
     stageObserver.observe(tankStage);
   }
+  let dockObserver = null;
+  if (typeof ResizeObserver !== 'undefined' && UI.insightPanel) {
+    dockObserver = new ResizeObserver(syncDockHeights);
+    dockObserver.observe(UI.insightPanel);
+    if (UI.bottomDock) dockObserver.observe(UI.bottomDock);
+  }
   resizeCanvas();
+  syncDockHeights();
 
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -2329,6 +2357,7 @@
 
     renderEventStream();
     drawHistoryPanel();
+    syncDockHeights();
   }
 
   function applySeedFromInput() {

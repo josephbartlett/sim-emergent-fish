@@ -17,7 +17,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - the tank action row so the seed input and `Load Seed` control wrap as a single unit on laptop-width layouts
 - the population history card legend layout by moving the chart key into the header and removing the redundant legend band
-- the population history event stream so it expands to the bottom of the card instead of leaving unused panel space
+- the population history event stream so it fills the remaining card space on desktop and keeps an internal scrollbar once it exceeds that bounded area
 - repo verification docs to include the automated seed-audit check
 
 ## [0.1.2] - 2026-03-24

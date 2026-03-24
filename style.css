@@ -498,6 +498,7 @@ body::before {
 
 #history-panel {
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  min-height: 0;
   align-content: stretch;
 }
 
@@ -731,7 +732,6 @@ input[type='range']::-moz-range-thumb {
   display: grid;
   gap: 10px;
   min-height: 0;
-  height: 100%;
   overflow: auto;
   padding-right: 2px;
 }
