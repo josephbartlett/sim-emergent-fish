@@ -183,6 +183,17 @@
               <button type="button" class="chrome-button chrome-subtle" id="replay-rewind-long">Rewind 30s</button>
               <button type="button" class="chrome-button chrome-subtle" id="replay-live">Return Live</button>
             </div>
+            <div class="replay-scrubber">
+              <div class="replay-scrub-meta">
+                <span>Replay scrubber</span>
+                <strong id="replay-scrub-label">Live edge</strong>
+              </div>
+              <input type="range" id="replay-scrubber" min="0" max="1" step="1" value="1" aria-label="Replay scrubber">
+              <div class="replay-scrub-scale" aria-hidden="true">
+                <span>Older</span>
+                <span>Live</span>
+              </div>
+            </div>
             <p id="replay-note" class="card-note">Recording the last 45 seconds of the current run for quick rewinds and bookmarks.</p>
             <div id="bookmark-list" aria-live="polite">
               <article class="bookmark-chip bookmark-empty">

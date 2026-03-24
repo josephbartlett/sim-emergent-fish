@@ -75,6 +75,8 @@
     replayRewindShortButton: document.getElementById('replay-rewind-short'),
     replayRewindLongButton: document.getElementById('replay-rewind-long'),
     replayLiveButton: document.getElementById('replay-live'),
+    replayScrubber: document.getElementById('replay-scrubber'),
+    replayScrubLabel: document.getElementById('replay-scrub-label'),
     bookmarkList: document.getElementById('bookmark-list'),
     eventStream: document.getElementById('event-stream'),
     seasonCallout: document.getElementById('season-callout'),
@@ -1695,6 +1697,23 @@
     return scenarioById(currentScenarioId);
   }
 
+  function activeReplaySnapshot() {
+    if (REPLAY.activeSnapshotId == null) return null;
+    return REPLAY.bookmarks.find((entry) => entry.id === REPLAY.activeSnapshotId) || REPLAY.buffer.find((entry) => entry.id === REPLAY.activeSnapshotId) || null;
+  }
+
+  function replayIndexForSnapshot(snapshot) {
+    if (!snapshot || !REPLAY.buffer.length) return REPLAY.buffer.length;
+    const direct = REPLAY.buffer.findIndex((entry) => entry.id === snapshot.id);
+    if (direct >= 0) return direct;
+    let nearest = 0;
+    for (const [index, entry] of REPLAY.buffer.entries()) {
+      if (entry.takenAt <= snapshot.takenAt) nearest = index;
+      else break;
+    }
+    return nearest;
+  }
+
   function pointFromNormalized(nx, ny) {
     return {
       x: lerp(WORLD.edgePad, W - WORLD.edgePad, clamp(nx, 0, 1)),
@@ -1781,6 +1800,21 @@
       else break;
     }
     return pick;
+  }
+
+  function scrubReplayTo(indexValue) {
+    const liveIndex = REPLAY.buffer.length;
+    const index = clamp(Math.round(Number(indexValue) || 0), 0, liveIndex);
+    if (index >= liveIndex) {
+      if (REPLAY.activeSnapshotId != null) return returnToLive();
+      syncReplayUi();
+      return true;
+    }
+    const snapshot = REPLAY.buffer[index];
+    if (!snapshot) return false;
+    const restored = restoreReplaySnapshot(snapshot, true);
+    if (restored) pauseReason = 'replay';
+    return restored;
   }
 
   function addBookmark() {
@@ -2213,6 +2247,8 @@
   function syncReplayUi() {
     const liveAvailable = Boolean(REPLAY.returnSnapshot);
     const replayActive = REPLAY.activeSnapshotId != null;
+    const active = activeReplaySnapshot();
+    const liveIndex = REPLAY.buffer.length;
     if (UI.replayBookmarkButton) UI.replayBookmarkButton.disabled = !g || !g.fish.length;
     if (UI.replayRewindShortButton) UI.replayRewindShortButton.disabled = REPLAY.buffer.length < 2;
     if (UI.replayRewindLongButton) UI.replayRewindLongButton.disabled = REPLAY.buffer.length < 2;
@@ -2220,11 +2256,23 @@
       UI.replayLiveButton.disabled = !liveAvailable;
       UI.replayLiveButton.dataset.state = replayActive ? 'active' : 'idle';
     }
+    if (UI.replayScrubber) {
+      UI.replayScrubber.min = '0';
+      UI.replayScrubber.max = String(Math.max(1, liveIndex));
+      UI.replayScrubber.value = String(replayActive ? replayIndexForSnapshot(active) : liveIndex);
+      UI.replayScrubber.disabled = liveIndex < 1;
+    }
+    if (UI.replayScrubLabel) {
+      if (replayActive && active) UI.replayScrubLabel.textContent = `${active.label || 'Snapshot'} · T+${formatEventTime(active.takenAt)}`;
+      else if (REPLAY.buffer.length) UI.replayScrubLabel.textContent = `Live edge · T+${formatEventTime(REPLAY.buffer[REPLAY.buffer.length - 1].takenAt)}`;
+      else UI.replayScrubLabel.textContent = 'Buffer warming up';
+    }
     if (UI.replayNote) {
       if (replayActive) {
-        const active = REPLAY.bookmarks.find((entry) => entry.id === REPLAY.activeSnapshotId) || REPLAY.buffer.find((entry) => entry.id === REPLAY.activeSnapshotId);
         const label = active ? `${active.label || 'Snapshot'} at T+${formatEventTime(active.takenAt)}` : 'Recorded snapshot';
-        UI.replayNote.textContent = `Replay loaded from ${label}. Return Live restores the saved live branch before this rewind.`;
+        UI.replayNote.textContent = `Replay loaded from ${label}. Scrub to another moment or Return Live to jump back to the saved branch.`;
+      } else if (liveAvailable) {
+        UI.replayNote.textContent = `Running from a replayed branch. Return Live jumps back to the saved branch captured before the scrub.`;
       } else {
         UI.replayNote.textContent = `Recording the last ${REPLAY.maxSeconds} seconds of ${currentScenario().label}. ${REPLAY.bookmarks.length} bookmark${REPLAY.bookmarks.length === 1 ? '' : 's'} saved.`;
       }
@@ -2348,8 +2396,9 @@
     syncViewUi();
     syncReplayUi();
     if (UI.pauseButton) {
-      UI.pauseButton.textContent = paused ? 'Resume [P]' : 'Pause [P]';
-      UI.pauseButton.dataset.state = paused ? 'paused' : 'running';
+      const replayActive = REPLAY.activeSnapshotId != null;
+      UI.pauseButton.textContent = replayActive ? 'Resume Snapshot [P]' : paused ? 'Resume [P]' : 'Pause [P]';
+      UI.pauseButton.dataset.state = replayActive ? 'replay' : paused ? 'paused' : 'running';
     }
     if (shell) {
       shell.dataset.cinematic = cinematic ? 'true' : 'false';
@@ -2835,6 +2884,12 @@
       });
     }
 
+    if (UI.replayScrubber) {
+      UI.replayScrubber.addEventListener('input', () => {
+        scrubReplayTo(UI.replayScrubber.value);
+      });
+    }
+
     if (UI.bookmarkList) {
       UI.bookmarkList.addEventListener('click', (e) => {
         const button = e.target.closest('[data-bookmark-id]');
@@ -2867,9 +2922,11 @@
 
   function resumeGame() {
     if (!paused) return;
+    const leavingReplay = REPLAY.activeSnapshotId != null && pauseReason === 'replay';
     paused = false;
     pauseReason = '';
     pauseClock = 0;
+    if (leavingReplay) REPLAY.activeSnapshotId = null;
     input.down = Object.create(null);
     input.pressed = Object.create(null);
     input.used = Object.create(null);
@@ -4085,6 +4142,37 @@
     c.restore();
   }
 
+  function renderReplayOverlay(c) {
+    const active = activeReplaySnapshot();
+    const lines = ['REPLAY SNAPSHOT'];
+    if (active) lines.push(`${active.label || 'Snapshot'} T+${formatEventTime(active.takenAt)}`);
+    lines.push('SCRUB OR RETURN LIVE');
+
+    const lineH = 9;
+    const padX = 6;
+    const padY = 5;
+    const maxWidth = scaleWorld(148);
+    const innerWidth = maxWidth - padX * 2;
+    const wrapped = [];
+    for (const line of lines) wrapped.push(...wrapBitmapText(line, innerWidth, 1));
+    const contentWidth = wrapped.reduce((max, line) => Math.max(max, bitmapTextWidth(line, 1)), 0);
+    const width = Math.min(maxWidth, Math.max(scaleWorld(70), contentWidth + padX * 2));
+    const height = padY * 2 + wrapped.length * lineH;
+    const x = W - width - 8;
+    const y = WORLD.hudH + 8;
+
+    c.save();
+    c.globalAlpha = 0.92;
+    c.fillStyle = 'rgba(0,0,0,0.42)';
+    c.fillRect(x, y, width, height);
+    c.strokeStyle = 'rgba(168,230,255,0.14)';
+    c.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+    for (let i = 0; i < wrapped.length; i++) {
+      drawText(c, wrapped[i], x + padX, y + padY + i * lineH, i === 0 ? COL.foam : COL.gray, 1);
+    }
+    c.restore();
+  }
+
   function renderPauseOverlay(c) {
     const pulse = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(pauseClock * 4.5));
     c.save();
@@ -4731,7 +4819,8 @@
       drawHintPanel(ctx, lines, 0.85);
     }
 
-    if (paused) renderPauseOverlay(ctx);
+    if (paused && pauseReason === 'replay') renderReplayOverlay(ctx);
+    else if (paused) renderPauseOverlay(ctx);
     postFx();
     drawFrame(ctx);
   }

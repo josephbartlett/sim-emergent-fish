@@ -31,10 +31,11 @@ The history card records a rolling replay buffer for the last 45 seconds of the 
 
 - `Bookmark [B]`: pin the current live state into the bookmark strip
 - `Rewind 15s` / `Rewind 30s`: pause into a recent snapshot from the rolling buffer
+- replay scrubber: drag across the buffered history to move between recent snapshots and the live edge
 - `Return Live`: resume the saved live branch that existed before the rewind
 - bookmark chips: jump directly back to a saved moment
 
-Replay snapshots pause the simulation intentionally. `Return Live` restores the live branch and resumes the tank.
+Replay snapshots use a compact replay badge in the tank instead of the full pause slab. `Resume Snapshot [P]` continues from the currently loaded snapshot as a new branch, while `Return Live` restores the saved live branch and resumes the tank.
 
 ## Observation Surfaces
 

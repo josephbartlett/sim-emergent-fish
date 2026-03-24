@@ -10,6 +10,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - a named scenario lab with `Baseline Drift`, `Nursery Pressure`, `Predator Bloom`, `Lean Recovery`, and `Murky Shock`
 - replay and bookmark controls for the last 45 seconds of tank history, including rewind and live-return flow
+- a replay scrubber in the history card for stepping through recent snapshots without relying only on fixed rewind buttons
 
 ### Changed
 
@@ -19,6 +20,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 ### Fixed
 
 - replay return flow so `Return Live` restores the running branch instead of leaving the tank in a stale paused state
+- replay presentation so snapshot browsing no longer drops the tank into the full pause slab
 
 ## [0.1.3] - 2026-03-24
 

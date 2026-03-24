@@ -497,7 +497,7 @@ body::before {
 }
 
 #history-panel {
-  grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto auto auto minmax(0, 1fr);
   min-height: 0;
   align-content: stretch;
 }
@@ -736,6 +736,39 @@ input[type='range']::-moz-range-thumb {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.replay-scrubber {
+  display: grid;
+  gap: 8px;
+}
+
+.replay-scrub-meta,
+.replay-scrub-scale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.replay-scrub-meta span,
+.replay-scrub-scale span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#replay-scrub-label {
+  color: var(--text);
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+
+#replay-scrubber {
+  width: 100%;
+  margin: 0;
+  accent-color: rgba(109, 220, 143, 0.92);
 }
 
 #bookmark-list {
