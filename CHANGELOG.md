@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Changed
+
+- roadmap planning to make `v0.3.0` a watchability and attachment release, with stronger spatial ecology moved to `v0.4.0` and experiment hardening moved to `v0.5.0`
+
 ## [0.2.0] - 2026-03-24
 
 ### Added

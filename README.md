@@ -42,7 +42,7 @@ Simulation and usage:
 - [docs/observatory.md](./docs/observatory.md): controls, overlays, inspector behavior, and what to watch
 - [docs/simulation.md](./docs/simulation.md): ecology model, seeds, runtime parameters, and audit workflow
 - [docs/assets.md](./docs/assets.md): Asset Forge sceneplans, generated assets, and fallback behavior
-- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and next major feature tracks
+- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction
 
 Repository workflow:
 

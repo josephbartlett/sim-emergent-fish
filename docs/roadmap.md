@@ -9,7 +9,7 @@ Latest tagged release: `v0.2.0`
 Current emphasis:
 
 - keep `main` releaseable
-- prepare `v0.3.0` as a stronger spatial ecology release, not a scripted game
+- prepare `v0.3.0` as a watchability and attachment release, not a scripted game
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -59,6 +59,18 @@ Follow-on notes:
 
 ## v0.3.0
 
+Theme: watchability and attachment.
+
+Target features:
+
+- follow mode for a selected fish
+- stronger fish identity and persistent subject handling
+- fish-centric history such as lifespan, generation, and notable events
+- better event surfacing around the selected fish or highlighted lineage
+- clearer "watch this one" UX that reinforces curiosity without introducing scripted outcomes
+
+## v0.4.0
+
 Theme: stronger spatial ecology.
 
 Target features:
@@ -67,7 +79,7 @@ Target features:
 - nursery behavior around formations and wake zones
 - stronger patrol, refuge, and ambush structure
 
-## v0.4.0
+## v0.5.0
 
 Theme: experiment hardening.
 
@@ -84,3 +96,4 @@ Good candidates that are useful but not yet pinned to a release:
 - lightweight replay export or demo capture
 - GitHub Pages or other public homepage
 - richer README screenshot set after another visual polish pass
+- optional naming and fish-personality surfaces only if they support observability rather than turning the sim into a game
