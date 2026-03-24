@@ -21,6 +21,7 @@ Current baseline: `v0.1.2`
    python3 -m http.server 8000
    curl -I http://127.0.0.1:8000/index.html
    curl -I http://127.0.0.1:8000/seed-audit.html
+   python3 scripts/check_seed_audit.py
    ```
 
 4. Update:

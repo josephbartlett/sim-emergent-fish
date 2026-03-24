@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- a lightweight Playwright-backed seed-audit threshold check under `scripts/check_seed_audit.py`
+- CI coverage for the seed-audit regression check in addition to syntax and HTTP smoke checks
+
+### Fixed
+
+- the tank action row so the seed input and `Load Seed` control wrap as a single unit on laptop-width layouts
+- repo verification docs to include the automated seed-audit check
+
 ## [0.1.2] - 2026-03-24
 
 ### Added

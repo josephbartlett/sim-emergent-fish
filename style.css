@@ -208,7 +208,16 @@ body::before {
 #top-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.seed-actions {
+  min-width: min(100%, 300px);
+  display: flex;
+  flex: 1 1 320px;
+  justify-content: flex-end;
+  align-items: stretch;
   gap: 10px;
 }
 
@@ -312,12 +321,19 @@ body::before {
 
 .seed-control {
   min-width: 138px;
+  flex: 1 1 170px;
+  max-width: 220px;
   padding: 8px 11px;
   display: grid;
   gap: 5px;
   border: 1px solid rgba(168, 230, 255, 0.12);
   border-radius: 12px;
   background: rgba(7, 17, 38, 0.72);
+}
+
+#apply-seed {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .seed-control span {
@@ -989,6 +1005,10 @@ input[type='range']::-moz-range-thumb {
   #tank-toolbar {
     grid-template-columns: 1fr;
   }
+
+  .seed-actions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 1200px) {
@@ -1088,13 +1108,22 @@ input[type='range']::-moz-range-thumb {
   }
 
   .chrome-button,
+  .seed-actions,
   .seed-control {
     width: 100%;
     min-width: 0;
   }
 
-  .seed-control {
+  .seed-actions {
     grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: stretch;
+  }
+
+  .seed-control {
+    grid-column: auto;
+    max-width: none;
   }
 
   #control-panel {

@@ -53,11 +53,13 @@
               <button type="button" class="chrome-button" id="reset-sim">Next Seed [R]</button>
               <button type="button" class="chrome-button" id="controls-toggle">Controls [T]</button>
               <button type="button" class="chrome-button" id="focus-mode">Focus [C]</button>
-              <label class="seed-control" for="seed-input">
-                <span>Seed</span>
-                <input id="seed-input" type="number" min="1" step="1" inputmode="numeric" value="240311" />
-              </label>
-              <button type="button" class="chrome-button" id="apply-seed">Load Seed</button>
+              <div class="seed-actions">
+                <label class="seed-control" for="seed-input">
+                  <span>Seed</span>
+                  <input id="seed-input" type="number" min="1" step="1" inputmode="numeric" value="240311" />
+                </label>
+                <button type="button" class="chrome-button" id="apply-seed">Load Seed</button>
+              </div>
             </div>
             <div id="tank-observation" aria-live="polite">
               <article class="observation-pill compact">

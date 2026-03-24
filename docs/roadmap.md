@@ -20,11 +20,12 @@ Bug sweep status as of 2026-03-24:
 - `index.html` and `seed-audit.html` both return `200` over the local server
 - scripted browser interactions on the main app completed without console errors, page errors, or failed requests
 - the seed audit completed successfully and returned stable aggregate metrics
+- a Playwright-backed seed-audit threshold check now exists for local and CI use
 
 Residual risks to keep an eye on:
 
-- the top action row wraps a bit awkwardly at some laptop widths, even though it remains usable
-- the simulation still depends on visual QA and seed sweeps more than formal automated thresholds
+- screenshot and layout regressions still depend on visual QA more than automated image baselines
+- the seed-audit thresholds are intentionally conservative and should be revisited as ecology tuning evolves
 - seed balance varies meaningfully by habitat layout, so future ecology changes should keep using deterministic seed checks
 
 ## Planned Version Targets
