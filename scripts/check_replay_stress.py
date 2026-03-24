@@ -36,6 +36,9 @@ def inspect_state(page):
           const scrubLabel = document.getElementById('replay-scrub-label');
           const rewindShort = document.getElementById('replay-rewind-short');
           const rewindLong = document.getElementById('replay-rewind-long');
+          const inspectName = document.getElementById('inspect-name');
+          const inspectSummary = document.getElementById('inspect-summary');
+          const inspectLineageNote = document.getElementById('inspect-lineage-note');
           const texts = Array.from(eventStream.querySelectorAll('.event-item')).map((el) => el.innerText);
           return {
             time: snap.time,
@@ -54,6 +57,10 @@ def inspect_state(page):
             scrubLabel: scrubLabel.textContent,
             rewindShortDisabled: rewindShort.disabled,
             rewindLongDisabled: rewindLong.disabled,
+            selection: dbg.selection(),
+            inspectName: inspectName.textContent,
+            inspectSummary: inspectSummary.textContent,
+            inspectLineageNote: inspectLineageNote.textContent,
           };
         }"""
     )
@@ -106,9 +113,20 @@ def main() -> int:
         page.evaluate("window.__FISHTANK_DEBUG__.runAudit(12)")
 
         failures: list[dict] = []
+        tracked_fish_id = None
+        tracked_lineage = None
+        fish_ids = page.evaluate("window.__FISHTANK_DEBUG__.fishIds()")
+        if fish_ids:
+            tracked_fish_id = fish_ids[-1]
+            page.evaluate("(id) => window.__FISHTANK_DEBUG__.selectFishById(id)", tracked_fish_id)
+            page.click("#inspect-highlight")
         live_before = inspect_state(page)
         if live_before["bookmarkCount"] < 2:
             record_failure(failures, "bookmark-setup", live_before)
+        if tracked_fish_id is not None:
+            tracked_lineage = live_before["selection"]["highlightedLineage"]
+            if live_before["selection"]["selectedFishId"] != tracked_fish_id:
+                record_failure(failures, "selection-setup", live_before, {"tracked_fish_id": tracked_fish_id})
 
         scrub_max = int(live_before["scrubMax"])
         pattern = [0, max(0, scrub_max - 1), scrub_max // 2, scrub_max, max(0, scrub_max - 3), 1, scrub_max, 0]
@@ -125,6 +143,15 @@ def main() -> int:
                     record_failure(failures, "scrub-live-state", state, {"iteration": i, "target": target})
             if state["invalidTexts"] or state["activeBookmarkCount"] > 1 or (state["placeholder"] and state["eventCount"] > 1):
                 record_failure(failures, "scrub-dom-invariant", state, {"iteration": i, "target": target})
+            if tracked_fish_id is not None:
+                selection = state["selection"]
+                selected_pin = selection.get("selectedFishPin") or {}
+                if selection.get("selectedFishId") != tracked_fish_id or selected_pin.get("id") != tracked_fish_id:
+                    record_failure(failures, "scrub-selection-shifted", state, {"iteration": i, "target": target, "tracked_fish_id": tracked_fish_id})
+                if tracked_lineage is not None and selection.get("highlightedLineage") != tracked_lineage:
+                    record_failure(failures, "scrub-lineage-shifted", state, {"iteration": i, "target": target, "tracked_lineage": tracked_lineage})
+                if not selection.get("selectedPresent") and "No fish selected" in state["inspectName"]:
+                    record_failure(failures, "scrub-selection-lost-in-inspector", state, {"iteration": i, "target": target})
 
         page.evaluate("window.__FISHTANK_DEBUG__.returnToLive()")
         page.evaluate("window.__FISHTANK_DEBUG__.runAudit(35)")
@@ -150,6 +177,11 @@ def main() -> int:
                 record_failure(failures, "return-live-state", state, {"iteration": i})
             if state["invalidTexts"] or state["activeBookmarkCount"] > 1 or (state["placeholder"] and state["eventCount"] > 1):
                 record_failure(failures, "button-dom-invariant", state, {"iteration": i})
+            if tracked_fish_id is not None:
+                selection = state["selection"]
+                selected_pin = selection.get("selectedFishPin") or {}
+                if selection.get("selectedFishId") != tracked_fish_id or selected_pin.get("id") != tracked_fish_id:
+                    record_failure(failures, "button-selection-shifted", state, {"iteration": i, "tracked_fish_id": tracked_fish_id})
             button_cycles_completed = i + 1
 
         if button_cycles_completed == 0:
@@ -183,6 +215,11 @@ def main() -> int:
             )
         if live_after["invalidTexts"] or live_after["activeBookmarkCount"] > 1 or (live_after["placeholder"] and live_after["eventCount"] > 1):
             record_failure(failures, "live-after-dom-invariant", live_after)
+        if tracked_fish_id is not None:
+            selection = live_after["selection"]
+            selected_pin = selection.get("selectedFishPin") or {}
+            if selection.get("selectedFishId") != tracked_fish_id or selected_pin.get("id") != tracked_fish_id:
+                record_failure(failures, "live-after-selection-shifted", live_after, {"tracked_fish_id": tracked_fish_id})
 
         browser.close()
 

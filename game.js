@@ -1617,6 +1617,7 @@
   let cinematic = false;
   let currentScenarioId = 'baseline';
   let selectedFishId = null;
+  let selectedFishPin = null;
   let highlightedLineage = null;
   let pauseReason = '';
   let pauseClock = 0;
@@ -1751,6 +1752,7 @@
       tune: cloneData(TUNE),
       history: cloneData(HISTORY),
       selectedFishId,
+      selectedFishPin: cloneData(selectedFishPin),
       highlightedLineage,
       rngState: simRand && Number.isFinite(simRand.state) ? simRand.state : currentSeed,
       state: cloneData(g),
@@ -1765,8 +1767,11 @@
     return snapshot;
   }
 
-  function restoreReplaySnapshot(snapshot, preserveReturn = true) {
+  function restoreReplaySnapshot(snapshot, preserveReturn = true, preserveSelection = true) {
     if (!snapshot) return false;
+    const preservedSelectionId = selectedFishId;
+    const preservedSelectionPin = cloneData(selectedFishPin);
+    const preservedLineage = highlightedLineage;
     if (preserveReturn && REPLAY.activeSnapshotId == null && !REPLAY.returnSnapshot) {
       REPLAY.returnSnapshot = makeReplaySnapshot('live', 'Live return');
     }
@@ -1782,8 +1787,9 @@
     g = cloneData(snapshot.state);
     HISTORY.points = cloneData(snapshot.history?.points || []);
     HISTORY.clock = snapshot.history?.clock || 0;
-    selectedFishId = snapshot.selectedFishId ?? null;
-    highlightedLineage = snapshot.highlightedLineage ?? null;
+    selectedFishId = preserveSelection ? preservedSelectionId : snapshot.selectedFishId ?? null;
+    selectedFishPin = preserveSelection ? preservedSelectionPin : cloneData(snapshot.selectedFishPin ?? null);
+    highlightedLineage = preserveSelection ? preservedLineage : snapshot.highlightedLineage ?? null;
     const restoringLiveBranch = snapshot.kind === 'live' && !preserveReturn;
     paused = restoringLiveBranch ? Boolean(snapshot.paused) : true;
     pauseReason = paused ? (restoringLiveBranch ? snapshot.pauseReason || 'manual' : 'replay') : '';
@@ -2132,21 +2138,44 @@
     return null;
   }
 
+  function pinDataForFish(fish) {
+    if (!fish) return null;
+    return {
+      id: fish.id,
+      lineage: fish.lineage,
+      archetype: fish.archetype,
+      archetypeLabel: fish.archetypeLabel,
+      generation: fish.generation,
+      stage: fish.stage,
+    };
+  }
+
+  function selectedLineageId() {
+    const selected = findFishById(selectedFishId);
+    if (selected) {
+      selectedFishPin = pinDataForFish(selected);
+      return selected.lineage;
+    }
+    return selectedFishPin?.lineage ?? null;
+  }
+
   function clearSelection() {
     selectedFishId = null;
+    selectedFishPin = null;
   }
 
   function selectFish(fish) {
     selectedFishId = fish ? fish.id : null;
+    selectedFishPin = fish ? pinDataForFish(fish) : null;
   }
 
   function toggleSelectedLineageHighlight() {
-    const selected = findFishById(selectedFishId);
-    if (!selected) {
+    const lineage = selectedLineageId();
+    if (lineage == null) {
       highlightedLineage = null;
       return false;
     }
-    highlightedLineage = highlightedLineage === selected.lineage ? null : selected.lineage;
+    highlightedLineage = highlightedLineage === lineage ? null : lineage;
     return true;
   }
 
@@ -2421,13 +2450,15 @@
       UI.focusButton.dataset.state = cinematic ? 'active' : 'idle';
     }
     const selected = findFishById(selectedFishId);
+    if (selected) selectedFishPin = pinDataForFish(selected);
+    const selectedLineage = selected ? selected.lineage : selectedFishPin?.lineage ?? null;
     if (UI.inspectHighlightButton) {
-      const active = Boolean(selected && highlightedLineage === selected.lineage);
+      const active = Boolean(selectedLineage != null && highlightedLineage === selectedLineage);
       UI.inspectHighlightButton.textContent = active ? 'Lineage On [L]' : 'Highlight [L]';
       UI.inspectHighlightButton.dataset.state = active ? 'active' : 'idle';
-      UI.inspectHighlightButton.disabled = !selected;
+      UI.inspectHighlightButton.disabled = selectedLineage == null;
     }
-    if (UI.inspectClearButton) UI.inspectClearButton.disabled = !selected && highlightedLineage == null;
+    if (UI.inspectClearButton) UI.inspectClearButton.disabled = selectedFishId == null && highlightedLineage == null;
     if (UI.seedInput && document.activeElement !== UI.seedInput) UI.seedInput.value = String(currentSeed);
   }
 
@@ -2554,14 +2585,15 @@
   function updateUiPanels(force = false) {
     if (!force && uiClock < 0.12) return;
     uiClock = 0;
-    if (selectedFishId != null && !findFishById(selectedFishId)) selectedFishId = null;
-    if (highlightedLineage != null && countLivingLineage(highlightedLineage) <= 0) highlightedLineage = null;
     syncControlLabels();
 
     const counts = populationBreakdown();
     const dominantId = ['grazer', 'shoaler', 'opportunist', 'hunter'].sort((a, b) => counts[b] - counts[a])[0];
     const dominant = counts[dominantId] ? archetypeById(dominantId).label : 'NONE';
     const selected = findFishById(selectedFishId);
+    if (selected) selectedFishPin = pinDataForFish(selected);
+    const pinned = selectedFishPin;
+    const replayActive = REPLAY.activeSnapshotId != null;
     const scenario = currentScenario();
     const season = g.env.season;
     const disturbance = disturbanceLabel();
@@ -2700,6 +2732,37 @@
           highlightedLineage === selected.lineage
             ? `Lineage ${selected.lineage} is highlighted. Matching fish stay bright and carry a tint marker; the pinned fish keeps the white ring and target line. ${lineageCount} living fish remain in that branch.`
             : `Lineage ${selected.lineage} is not highlighted. Press [L] or use Highlight to isolate it. The white ring and target line belong only to the pinned fish.`;
+      }
+    } else if (pinned) {
+      const lineageCount = pinned.lineage != null ? countLivingLineage(pinned.lineage) : 0;
+      if (UI.inspectKicker) UI.inspectKicker.textContent = pinned.lineage != null ? `Lineage ${pinned.lineage}` : 'Pinned fish';
+      if (UI.inspectName) UI.inspectName.textContent = `${pinned.archetypeLabel} #${pinned.id}`;
+      if (UI.inspectSummary) {
+        UI.inspectSummary.textContent = replayActive
+          ? `Pinned fish is not present in this snapshot. It may not have been born yet or may already be gone at this moment in the branch.`
+          : `Pinned fish is no longer present in the live tank. It may have died or been consumed, but the inspector is keeping your subject pinned for review.`;
+      }
+      if (UI.inspectArchetype) UI.inspectArchetype.textContent = pinned.archetypeLabel;
+      if (UI.inspectStage) UI.inspectStage.textContent = pinned.stage.toUpperCase();
+      if (UI.inspectEnergy) UI.inspectEnergy.textContent = '-';
+      if (UI.inspectHunger) UI.inspectHunger.textContent = '-';
+      if (UI.inspectSatiation) UI.inspectSatiation.textContent = '-';
+      if (UI.inspectLineage) UI.inspectLineage.textContent = pinned.lineage != null ? `${pinned.lineage}` : '-';
+      if (UI.inspectGeneration) UI.inspectGeneration.textContent = `${pinned.generation}`;
+      if (UI.inspectIntent) UI.inspectIntent.textContent = replayActive ? 'OFF-SNAPSHOT' : 'ABSENT';
+      if (UI.inspectTarget) {
+        UI.inspectTarget.textContent = replayActive
+          ? 'Pinned fish is off-snapshot. Scrub to a nearby moment or Return Live to look for it again.'
+          : 'Pinned fish is absent from the live tank. Clear the pin or keep lineage highlight on to follow the branch.';
+      }
+      if (UI.inspectLineageNote) {
+        if (highlightedLineage != null && pinned.lineage === highlightedLineage) {
+          UI.inspectLineageNote.textContent = `Lineage ${pinned.lineage} is highlighted even though the pinned fish is absent from this moment. ${lineageCount} living fish from that branch are currently visible.`;
+        } else if (pinned.lineage != null) {
+          UI.inspectLineageNote.textContent = `Pinned fish belongs to lineage ${pinned.lineage}. Press [L] or use Highlight to keep following that branch even when this individual is off-snapshot.`;
+        } else {
+          UI.inspectLineageNote.textContent = 'Pinned fish is absent and no lineage highlight is active.';
+        }
       }
     } else {
       if (UI.inspectKicker) UI.inspectKicker.textContent = highlightedLineage != null ? `Lineage ${highlightedLineage}` : 'Selection';
@@ -3286,6 +3349,7 @@
     nextLineageId = 1;
     nextFishId = 1;
     selectedFishId = null;
+    selectedFishPin = null;
     highlightedLineage = null;
     g = newSimulation();
     g.run.scenario = currentScenarioId;
@@ -3896,7 +3960,6 @@
       if (f.energy <= 0) {
         f.alive = false;
         g.stats.deaths++;
-        if (selectedFishId === f.id) selectedFishId = null;
         pushEvent('death', `${f.archetypeLabel} starved`, `Lineage ${f.lineage} lost a ${f.stage} at ${Math.round(f.age)}s of age.`, {
           fishId: f.id,
           lineage: f.lineage,
@@ -3978,7 +4041,6 @@
           }
           g.stats.deaths++;
           g.stats.predations++;
-          if (selectedFishId === prey.id) selectedFishId = null;
           pushEvent(
             'predation',
             `${eater.archetypeLabel} consumed ${prey.archetypeLabel.toLowerCase()}`,
@@ -4951,6 +5013,20 @@
     returnToLive: () => returnToLive(),
     restoreBookmark: (id) => restoreBookmark(id),
     bookmarkIds: () => REPLAY.bookmarks.map((entry) => entry.id),
+    fishIds: () => g.fish.map((fish) => fish.id),
+    selectFishById: (id) => {
+      const fish = findFishById(id);
+      if (!fish) return false;
+      selectFish(fish);
+      updateUiPanels(true);
+      return true;
+    },
+    selection: () => ({
+      selectedFishId,
+      selectedFishPin: cloneData(selectedFishPin),
+      highlightedLineage,
+      selectedPresent: Boolean(findFishById(selectedFishId)),
+    }),
     setView: (key, value) => {
       if (!(key in VIEW)) return { ...VIEW };
       VIEW[key] = value == null ? !VIEW[key] : Boolean(value);

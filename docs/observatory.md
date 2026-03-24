@@ -37,6 +37,8 @@ The tank panel exposes the active replay controls, while the history card keeps 
 
 Replay snapshots use a compact replay badge in the tank instead of the full pause slab. `Resume Snapshot [P]` continues from the currently loaded snapshot as a new branch, while `Return Live` restores the saved live branch and resumes the tank.
 
+The pinned fish and lineage highlight stay tied to your current subject while you scrub. If that fish is not present in the loaded moment, the inspector keeps the pin and tells you the fish is off-snapshot instead of silently swapping you to an older historical selection.
+
 When you continue from a replayed snapshot or jump back to the saved live branch, the replay buffer rebases to that branch. The scrub range and rewind buttons will grow back as fresh history accumulates.
 
 ## Observation Surfaces
