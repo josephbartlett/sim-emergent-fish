@@ -34,7 +34,7 @@ For UI work, capture current screenshots after changes.
 - Keep commits atomic and use Conventional Commits.
 - Do not mix unrelated docs, simulation tuning, and asset-generation changes in a single commit unless they are tightly coupled.
 - Do not push, tag, or create releases unless the user explicitly asks for it.
-- Do not rewrite published history. For local cleanup before the first push, preserve `sim-emergent-fish` as working history and keep `main` clean.
+- Do not rewrite published history. Preserve historical branches such as `sim-emergent-fish`, and keep `main` as the clean release branch.
 
 ## PR Hygiene
 

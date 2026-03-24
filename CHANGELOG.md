@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this repository follows Semantic Versioning.
 
+## [Unreleased]
+
+### Added
+
+- a tracked roadmap document with planned version milestones and current quality notes
+
+### Fixed
+
+- stale repository workflow guidance that still referenced the pre-first-push state
+- simulation docs to clarify that `seed-audit.html` runs automatically on load
+
 ## [0.1.1] - 2026-03-24
 
 ### Added

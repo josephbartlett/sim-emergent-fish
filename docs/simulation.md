@@ -75,6 +75,8 @@ Open:
 
 - `http://localhost:8000/seed-audit.html`
 
+The audit page runs automatically on load and prints a JSON summary once the seed sweep completes.
+
 The audit page is useful for checking:
 
 - collapse rate
