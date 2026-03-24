@@ -5,7 +5,7 @@ This repository is a browser-local emergent fish simulation. Agents working here
 ## Project Snapshot
 
 - Name: `Fishtank Ecology (VGA)`
-- Current version: `v0.1.1`
+- Current version: `v0.1.2`
 - License: MIT, copyright Joey Bartlett
 - Stack: static HTML, CSS, JavaScript, and tracked PNG assets
 - Primary entrypoints:

@@ -1,6 +1,6 @@
 # Fishtank Ecology (VGA)
 
-Current version: `v0.1.1`
+Current version: `v0.1.2`
 
 Fishtank Ecology is a browser-local emergent behavior observatory. It runs a bounded aquarium simulation with autonomous fish, deterministic seeds, habitat formations, current fields, resource pressure, and inspection tools for watching local rules turn into visible patterns.
 

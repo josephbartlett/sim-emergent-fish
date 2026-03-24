@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-03-24
+
 ### Added
 
 - a tracked roadmap document with planned version milestones and current quality notes

@@ -4,7 +4,7 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest release: `v0.1.1`
+Latest release: `v0.1.2`
 
 Current emphasis:
 
