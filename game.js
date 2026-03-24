@@ -1730,6 +1730,12 @@
     REPLAY.nextId = 1;
   }
 
+  function rebaseReplayBuffer(label = 'Recent') {
+    REPLAY.buffer.length = 0;
+    REPLAY.clock = REPLAY.sampleEvery;
+    captureReplaySnapshot('auto', label);
+  }
+
   function makeReplaySnapshot(kind = 'auto', label = '') {
     return {
       id: REPLAY.nextId++,
@@ -1761,7 +1767,7 @@
 
   function restoreReplaySnapshot(snapshot, preserveReturn = true) {
     if (!snapshot) return false;
-    if (preserveReturn && REPLAY.activeSnapshotId == null) {
+    if (preserveReturn && REPLAY.activeSnapshotId == null && !REPLAY.returnSnapshot) {
       REPLAY.returnSnapshot = makeReplaySnapshot('live', 'Live return');
     }
     currentScenarioId = snapshot.scenarioId || currentScenarioId;
@@ -1855,6 +1861,8 @@
     const restored = restoreReplaySnapshot(snapshot, false);
     if (restored) {
       REPLAY.activeSnapshotId = null;
+      rebaseReplayBuffer('Live edge');
+      updateUiPanels(true);
       SFX.play('ui');
     }
     return restored;
@@ -2933,6 +2941,7 @@
     input.pointer.tapped = false;
     simAccumulator = 0;
     last = performance.now();
+    if (leavingReplay) rebaseReplayBuffer('Branch live');
     syncControlLabels();
     updateUiPanels(true);
   }

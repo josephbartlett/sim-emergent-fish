@@ -21,6 +21,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - replay return flow so `Return Live` restores the running branch instead of leaving the tank in a stale paused state
 - replay presentation so snapshot browsing no longer drops the tank into the full pause slab
+- replay branch handling so scrubbing after a resumed snapshot no longer overwrites the original live-return target
 
 ## [0.1.3] - 2026-03-24
 
