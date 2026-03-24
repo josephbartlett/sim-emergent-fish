@@ -2,7 +2,7 @@
 
 This repository uses Semantic Versioning with annotated tags in the form `vX.Y.Z`.
 
-Current baseline: `v0.1.0`
+Current baseline: `v0.1.1`
 
 ## Version Rules
 
