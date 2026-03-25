@@ -61,6 +61,17 @@ The strip above the canvas carries:
 - current seed and run mode
 - the active scenario label
 - the short watch note for the current phase or disturbance
+- the ambient music pill for `Glass Shelter`
+
+### Ambient Audio
+
+Ambient music is optional and starts only when you use its own toggle.
+
+- use the `Music` toggle in the tank observation strip to start or stop `Glass Shelter`
+- use the volume slider beside it to trim the level without opening the control drawer
+- when the tank pauses, the ambient track pauses with it and resumes when the run resumes
+- the bundled source is `audio/glass-shelter.mid`
+- the composition is attributed to ChatGPT
 
 ### In-Tank HUD
 

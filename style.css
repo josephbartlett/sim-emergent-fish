@@ -230,7 +230,7 @@ body::before {
 
 #tank-observation {
   display: grid;
-  grid-template-columns: minmax(200px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(260px, 340px);
   gap: 10px;
   align-items: stretch;
 }
@@ -253,6 +253,51 @@ body::before {
 
 .observation-pill.observation-wide {
   min-width: 0;
+}
+
+.music-pill {
+  min-width: 0;
+}
+
+.music-controls {
+  display: grid;
+  grid-template-columns: auto minmax(140px, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.music-volume {
+  min-width: 0;
+  padding: 7px 10px;
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(168, 230, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(7, 17, 38, 0.56);
+}
+
+.music-volume span {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.64rem;
+  color: rgba(168, 230, 255, 0.72);
+}
+
+.music-volume input[type='range'] {
+  height: 10px;
+}
+
+#music-toggle[data-state='active'] {
+  border-color: rgba(109, 220, 143, 0.34);
+  background:
+    linear-gradient(180deg, rgba(34, 73, 53, 0.82), rgba(10, 32, 22, 0.96));
+}
+
+#music-toggle[data-state='loading'] {
+  border-color: rgba(168, 230, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(53, 78, 110, 0.82), rgba(16, 29, 49, 0.96));
 }
 
 .chrome-button {
@@ -1200,6 +1245,10 @@ button.bookmark-chip[data-active='true'] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  #music-panel {
+    grid-column: 1 / -1;
+  }
+
   #control-panel {
     top: auto;
     left: 12px;
@@ -1282,6 +1331,10 @@ button.bookmark-chip[data-active='true'] {
   }
 
   #tank-observation {
+    grid-template-columns: 1fr;
+  }
+
+  .music-controls {
     grid-template-columns: 1fr;
   }
 

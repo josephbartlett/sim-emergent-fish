@@ -39,6 +39,7 @@ bash scripts/build_static_site.sh
 - deterministic seeded tanks with bottom-mounted formations, wake zones, and current variation
 - juvenile and adult life stages, food competition, predation, reproduction, and disturbances
 - observatory UI with focus mode, fish inspector, named fish subjects, an in-tank subject card, story counters, watch feed, lineage highlighting, event timeline, scenario lab controls, replay bookmarks, and seed audit tools
+- an optional ambient track, `Glass Shelter`, bundled as MIDI, prewarmed for browser playback, and surfaced through a compact toggle and volume control
 - Asset Forge-backed fish and habitat art with fallback rendering in `game.js`
 
 ## Docs

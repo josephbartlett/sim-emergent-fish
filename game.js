@@ -117,6 +117,11 @@
     overlayRunNote: document.getElementById('overlay-run-note'),
     overlayWatch: document.getElementById('overlay-watch'),
     overlayWatchNote: document.getElementById('overlay-watch-note'),
+    musicPanel: document.getElementById('music-panel'),
+    musicTrackTitle: document.getElementById('music-track-title'),
+    musicToggleButton: document.getElementById('music-toggle'),
+    musicVolume: document.getElementById('music-volume'),
+    musicNote: document.getElementById('music-note'),
     archetypes: {
       grazer: document.getElementById('arch-grazer'),
       shoaler: document.getElementById('arch-shoaler'),
@@ -387,6 +392,35 @@
   const SFX = makeSfx();
   window.addEventListener('pointerdown', () => SFX.unlock(), { passive: true });
   window.addEventListener('keydown', () => SFX.unlock(), { passive: true });
+
+  const MUSIC = window.FishtankMusic
+    ? window.FishtankMusic.createAmbientMusicController({
+        src: 'audio/glass-shelter.mid',
+        title: 'Glass Shelter',
+        tempo: 64,
+        note: 'shelter-pocket ambience',
+        attribution: 'ChatGPT',
+        defaultVolume: 1,
+        onStateChange: renderMusicUi,
+      })
+    : null;
+
+  function renderMusicUi(state = MUSIC ? MUSIC.getState() : null) {
+    if (!UI.musicPanel || !UI.musicToggleButton || !UI.musicVolume || !UI.musicNote || !UI.musicTrackTitle) return;
+    if (!state) {
+      UI.musicPanel.hidden = true;
+      return;
+    }
+    UI.musicPanel.hidden = false;
+    UI.musicTrackTitle.textContent = state.title;
+    UI.musicToggleButton.textContent = state.buttonLabel;
+    UI.musicToggleButton.dataset.state = state.loading ? 'loading' : state.enabled ? 'active' : 'idle';
+    UI.musicToggleButton.disabled = Boolean(!state.available);
+    UI.musicToggleButton.setAttribute('aria-pressed', state.preferredEnabled ? 'true' : 'false');
+    UI.musicVolume.value = String(Math.round(state.volume * 100));
+    UI.musicVolume.disabled = !state.available;
+    UI.musicNote.textContent = state.noteLabel;
+  }
 
   // --- VGA-ish palette -----------------------------------------------------
 
@@ -2611,6 +2645,7 @@
       UI.focusButton.textContent = cinematic ? 'Exit Focus [C]' : 'Focus [C]';
       UI.focusButton.dataset.state = cinematic ? 'active' : 'idle';
     }
+    if (MUSIC) renderMusicUi();
     const subjectPin = currentSubjectPin();
     const selected = findFishById(selectedFishId);
     const selectedLineage = selected ? selected.lineage : subjectPin?.lineage ?? null;
@@ -3017,6 +3052,7 @@
   function bindUi() {
     syncControlInputs();
     syncPresetUi();
+    renderMusicUi();
     if (UI.pauseButton) UI.pauseButton.addEventListener('click', () => togglePause());
     if (UI.resetButton) {
       UI.resetButton.addEventListener('click', () => {
@@ -3072,6 +3108,16 @@
     if (UI.seedInput) {
       UI.seedInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') applySeedFromInput();
+      });
+    }
+    if (UI.musicToggleButton && MUSIC) {
+      UI.musicToggleButton.addEventListener('click', async () => {
+        await MUSIC.toggle();
+      });
+    }
+    if (UI.musicVolume && MUSIC) {
+      UI.musicVolume.addEventListener('input', () => {
+        MUSIC.setVolume(Number(UI.musicVolume.value) / 100);
       });
     }
 
@@ -3173,6 +3219,7 @@
     input.down = Object.create(null);
     input.pressed = Object.create(null);
     input.used = Object.create(null);
+    if (MUSIC) MUSIC.setSimulationPaused(true);
     syncControlLabels();
     updateUiPanels(true);
   }
@@ -3191,6 +3238,7 @@
     simAccumulator = 0;
     last = performance.now();
     if (leavingReplay) rebaseReplayBuffer('Branch live');
+    if (MUSIC) MUSIC.setSimulationPaused(false);
     syncControlLabels();
     updateUiPanels(true);
   }

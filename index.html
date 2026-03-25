@@ -77,6 +77,18 @@
                 <strong id="overlay-watch">Stabilizing</strong>
                 <small id="overlay-watch-note">Routes and shelters are still forming</small>
               </article>
+              <article class="observation-pill music-pill" id="music-panel" aria-label="Ambient music">
+                <span class="overlay-label">Ambient</span>
+                <strong id="music-track-title">Glass Shelter</strong>
+                <div class="music-controls">
+                  <button type="button" class="chrome-button chrome-subtle" id="music-toggle" aria-pressed="false">Music Off</button>
+                  <label class="music-volume" for="music-volume">
+                    <span>Vol</span>
+                    <input id="music-volume" type="range" min="0" max="100" step="1" value="38" aria-label="Ambient music volume" />
+                  </label>
+                </div>
+                <small id="music-note">Off · 64 BPM · calm cue · ChatGPT composition</small>
+              </article>
             </div>
           </div>
           <div id="tank-replay-bar" aria-label="Replay controls">
@@ -384,6 +396,7 @@
       </section>
       <button type="button" id="control-scrim" aria-label="Close control drawer"></button>
     </main>
+    <script src="music.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- optional ambient playback for `Glass Shelter`, with a compact toggle and volume control in the tank observation strip
+
+### Changed
+
+- the static deployment artifact so bundled music assets and `music.js` ship with hosted builds
+- ambient playback now starts only from its own toggle, pauses with the tank, and uses full-volume startup with cached renders for faster repeat loads
+
+### Fixed
+
+- browser compatibility for the new ambient cue by rendering the bundled MIDI in-browser instead of relying on native MIDI playback
+
 ## [0.3.1] - 2026-03-24
 
 ### Added

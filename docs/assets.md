@@ -22,6 +22,14 @@ Generated finals live in:
 
 The app loads these PNGs directly when present.
 
+## Audio Assets
+
+Bundled music currently lives in:
+
+- [`audio/glass-shelter.mid`](../audio/glass-shelter.mid)
+
+`Glass Shelter` is shipped as the original MIDI source and rendered in-browser for playback. The composition is attributed to ChatGPT.
+
 ## Fallback Behavior
 
 If generated assets are missing, the simulation still runs using built-in rendering fallbacks in [`game.js`](../game.js).

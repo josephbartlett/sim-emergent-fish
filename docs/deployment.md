@@ -11,7 +11,9 @@ Only these files are needed for a hosted build:
 - `seed-audit.css`
 - `seed-audit.js`
 - `style.css`
+- `music.js`
 - `game.js`
+- `audio/`
 - `generated/`
 
 The deployment artifact intentionally excludes repository governance files and docs.
