@@ -60,6 +60,17 @@ For UI changes, also include:
 - seed(s) used for validation
 - any known behavior tradeoffs or deferred tuning
 
+For deployment or security hardening changes, also verify the built static artifact:
+
+```bash
+bash scripts/build_static_site.sh
+python3 -m http.server 8010 --directory dist/site
+curl -I http://127.0.0.1:8010/index.html
+curl -I http://127.0.0.1:8010/seed-audit.html
+FISHTANK_BASE_URL=http://127.0.0.1:8010 python3 scripts/check_seed_audit.py
+FISHTANK_BASE_URL=http://127.0.0.1:8010 python3 scripts/check_replay_stress.py
+```
+
 ## Pull Requests
 
 PRs should:

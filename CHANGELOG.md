@@ -6,6 +6,22 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- a static deployment build script under `scripts/build_static_site.sh`
+- a GitHub Pages workflow that publishes only the deploy artifact instead of the full repository tree
+- deployment documentation under `docs/deployment.md`
+
+### Changed
+
+- `seed-audit.html` to use external CSS and JavaScript so it can run under a stricter static-site Content Security Policy
+- CI so the built static artifact is smoke tested in addition to the repo-root app
+
+### Fixed
+
+- the audit iframe surface by sandboxing it while preserving same-origin script access
+- the static browser policy surface with explicit CSP and referrer controls in the hosted HTML
+
 ## [0.3.0] - 2026-03-24
 
 ### Added

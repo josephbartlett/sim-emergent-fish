@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  padding: 16px;
+  background: #081327;
+  color: #d6e2ff;
+  font: 14px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+iframe {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  border: 0;
+  pointer-events: none;
+}

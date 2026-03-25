@@ -27,6 +27,12 @@ python3 scripts/check_seed_audit.py
 python3 scripts/check_replay_stress.py
 ```
 
+To build the deployable static artifact:
+
+```bash
+bash scripts/build_static_site.sh
+```
+
 ## Highlights
 
 - autonomous grazers, shoalers, opportunists, and hunters with local sensing and simple intent rules
@@ -42,6 +48,7 @@ Simulation and usage:
 - [docs/observatory.md](./docs/observatory.md): controls, overlays, inspector behavior, and what to watch
 - [docs/simulation.md](./docs/simulation.md): ecology model, seeds, runtime parameters, and audit workflow
 - [docs/assets.md](./docs/assets.md): Asset Forge sceneplans, generated assets, and fallback behavior
+- [docs/deployment.md](./docs/deployment.md): static hosting, hardening posture, and GitHub Pages deployment
 - [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction
 
 Repository workflow:

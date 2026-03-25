@@ -31,6 +31,17 @@ python3 scripts/check_replay_stress.py
 
 For UI or replay work, capture current screenshots after changes and rerun the replay stress check when bookmark, rewind, scrub, or live-return behavior changes.
 
+For deployment or security-surface changes, also build and smoke test the static artifact:
+
+```bash
+bash scripts/build_static_site.sh
+python3 -m http.server 8010 --directory dist/site
+curl -I http://127.0.0.1:8010/index.html
+curl -I http://127.0.0.1:8010/seed-audit.html
+FISHTANK_BASE_URL=http://127.0.0.1:8010 python3 scripts/check_seed_audit.py
+FISHTANK_BASE_URL=http://127.0.0.1:8010 python3 scripts/check_replay_stress.py
+```
+
 ## Repository Workflow
 
 - Default release branch: `main`
