@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Changed
+
+- roadmap planning so `v0.6.0` now targets a tank-first mobile observatory pass with modal controls, touch-first tracking, and an in-tank event console
+- release sequencing so stronger spatial ecology moves to `v0.7.0` and experiment hardening moves to `v0.8.0`
+
 ## [0.5.0] - 2026-03-25
 
 ### Added

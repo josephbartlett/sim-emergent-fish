@@ -9,7 +9,7 @@ Latest tagged release: `v0.5.0`
 Current emphasis:
 
 - keep `main` releaseable
-- keep the ambient observatory layer stable while the next release returns focus to ecology and spatial structure
+- keep the ambient observatory layer stable while the next release makes mobile feel tank-first instead of dashboard-first
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -29,6 +29,7 @@ Residual risks to keep an eye on:
 - screenshot and layout regressions still depend on visual QA more than automated image baselines
 - the seed-audit thresholds are intentionally conservative and should be revisited as ecology tuning evolves
 - seed balance varies meaningfully by habitat layout, so future ecology changes should keep using deterministic seed checks
+- mobile portrait usability still lags the desktop and landscape experience, especially when controls and lower panels compete with the tank
 
 ## Planned Version Targets
 
@@ -109,6 +110,26 @@ Follow-on notes:
 
 ## v0.6.0
 
+Theme: mobile observatory and tank-first handheld UX.
+
+Target features:
+
+- make the tank the dominant surface on phones in both portrait and landscape
+- treat mobile controls as a modal sheet or drawer that pauses the simulation while open
+- improve touch selection and tracking so fish remain easy to pin on smaller screens
+- add a translucent in-tank event console that mirrors the recent-event feed with soft fade masks
+- add a compact mobile/observatory icon pass, likely with Asset Forge, for controls that need stronger visual affordance
+- prefer responsive re-layout and optional landscape/fullscreen prompts over hard orientation requirements
+- capture a deliberate screenshot set across mobile breakpoints before release
+
+Release posture:
+
+- mobile should feel intentional without degrading the desktop observatory
+- the tank remains the main event; controls and diagnostics stay subordinate
+- the event console should help both mobile and desktop, not become another bulky panel
+
+## v0.7.0
+
 Theme: stronger spatial ecology.
 
 Target features:
@@ -117,7 +138,7 @@ Target features:
 - nursery behavior around formations and wake zones
 - stronger patrol, refuge, and ambush structure
 
-## v0.7.0
+## v0.8.0
 
 Theme: experiment hardening.
 
@@ -135,3 +156,4 @@ Good candidates that are useful but not yet pinned to a release:
 - GitHub Pages or other public homepage
 - richer README screenshot set after another visual polish pass
 - optional naming and fish-personality surfaces only if they support observability rather than turning the sim into a game
+- optional fullscreen or “best in landscape” affordances, but only if they stay advisory rather than mandatory

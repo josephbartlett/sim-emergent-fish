@@ -50,7 +50,7 @@ Simulation and usage:
 - [docs/simulation.md](./docs/simulation.md): ecology model, seeds, runtime parameters, and audit workflow
 - [docs/assets.md](./docs/assets.md): Asset Forge sceneplans, generated assets, and fallback behavior
 - [docs/deployment.md](./docs/deployment.md): static hosting, hardening posture, and GitHub Pages deployment
-- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction
+- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction, now focused on a tank-first mobile observatory pass
 
 Repository workflow:
 
