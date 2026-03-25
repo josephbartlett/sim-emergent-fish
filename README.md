@@ -39,6 +39,7 @@ bash scripts/build_static_site.sh
 - deterministic seeded tanks with bottom-mounted formations, wake zones, and current variation
 - juvenile and adult life stages, food competition, predation, reproduction, and disturbances
 - observatory UI with focus mode, fish inspector, named fish subjects, an in-tank subject card, story counters, watch feed, lineage highlighting, event timeline, scenario lab controls, replay bookmarks, and seed audit tools
+- a tank-first mobile observatory flow with portrait-safe sizing, handheld-only fullscreen mode, in-tank VGA HUD/event text, and touch-friendly fish selection
 - an optional rotating ambient MIDI pack, prewarmed for browser playback, with compact transport controls and hotkeys that stay visually subordinate to the tank
 - Asset Forge-backed fish and habitat art with fallback rendering in `game.js`
 
@@ -46,11 +47,11 @@ bash scripts/build_static_site.sh
 
 Simulation and usage:
 
-- [docs/observatory.md](./docs/observatory.md): controls, overlays, inspector behavior, and what to watch
+- [docs/observatory.md](./docs/observatory.md): controls, overlays, inspector behavior, handheld/fullscreen flow, and what to watch
 - [docs/simulation.md](./docs/simulation.md): ecology model, seeds, runtime parameters, and audit workflow
 - [docs/assets.md](./docs/assets.md): Asset Forge sceneplans, generated assets, and fallback behavior
 - [docs/deployment.md](./docs/deployment.md): static hosting, hardening posture, and GitHub Pages deployment
-- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction, now focused on a tank-first mobile observatory pass
+- [docs/roadmap.md](./docs/roadmap.md): planned version milestones, current quality notes, and the next major product direction, now focused on mobile-native controls and observatory iconography
 
 Repository workflow:
 

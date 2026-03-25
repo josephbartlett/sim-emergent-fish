@@ -13,6 +13,20 @@ This document covers how to run the tank, read the UI, and interpret the simulat
 - `X`, `Backspace`, or `Delete`: clear selection and lineage highlight
 - click a fish: pin it in the inspector instead of pausing
 
+## Handheld And Fullscreen
+
+Handheld layouts now prioritize the tank over the dashboard.
+
+- portrait handheld keeps a compact title strip above the tank instead of the full desktop observatory header
+- non-fullscreen handheld keeps the lower panels, but caps the visible recent-event list so the inspector stays closer to the aquarium
+- `Fullscreen [F]` is currently a handheld-only control and enters the mobile observatory view when the browser/device allows it
+- in handheld fullscreen, empty taps on the tank no longer pause the simulation; use the buttons instead
+- in handheld fullscreen, `Pause [P]` and `Controls [T]` both open the touch-first control sheet instead of the generic pause slab
+- `Back to Tank` closes that sheet and returns you to the aquarium
+- mobile observability is pushed into the tank itself through the VGA HUD and in-tank event text rather than the full desktop card stack
+
+Desktop fullscreen is intentionally deferred for now. Focus mode remains the desktop-first way to let the tank dominate the screen until the desktop fullscreen path is better tested.
+
 ## Scenario Lab
 
 The control drawer now includes named experiment bundles.
@@ -86,6 +100,16 @@ The canvas HUD shows:
 - herbivore/carnivore-leaning split
 
 The in-canvas hint panel calls out disruptions such as current reversals, collapses, or early-run orientation notes.
+
+On handheld and fullscreen views, the HUD also carries the seed, scenario, turnover, and phase information that would otherwise live in the desktop shell.
+
+### In-Tank Event Console
+
+The tank now mirrors recent events directly inside the aquarium.
+
+- on desktop it works as a lightweight companion to the lower timeline
+- on handheld it becomes the primary glanceable event surface
+- the text uses the VGA tank style and fades line-by-line instead of introducing another boxed overlay
 
 ### In-Tank Subject Card
 

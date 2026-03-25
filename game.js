@@ -36,6 +36,7 @@
   if (noscript) noscript.remove();
 
   const UI = {
+    tankPanel: document.getElementById('tank-panel'),
     bottomDock: document.getElementById('bottom-dock'),
     historyPanel: document.getElementById('history-panel'),
     insightPanel: document.getElementById('insight-panel'),
@@ -53,6 +54,7 @@
     controlsCloseButton: document.getElementById('controls-close'),
     controlScrim: document.getElementById('control-scrim'),
     focusButton: document.getElementById('focus-mode'),
+    fullscreenButton: document.getElementById('fullscreen-toggle'),
     musicToolbarToggleButton: document.getElementById('music-toggle-toolbar'),
     musicPrevButton: document.getElementById('music-prev'),
     musicNextButton: document.getElementById('music-next'),
@@ -139,12 +141,14 @@
     const rect = tankStage ? tankStage.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight };
     const availW = Math.max(1, rect.width - 28);
     const availH = Math.max(1, rect.height - 28);
-    const scale = Math.max(1, Math.floor(Math.min(availW / W, availH / H) * 4) / 4);
-    canvas.style.width = `${W * scale}px`;
-    canvas.style.height = `${H * scale}px`;
+    const rawScale = Math.min(availW / W, availH / H);
+    const scale = rawScale >= 1 ? Math.max(1, Math.floor(rawScale * 4) / 4) : rawScale;
+    canvas.style.width = `${Math.round(W * scale)}px`;
+    canvas.style.height = `${Math.round(H * scale)}px`;
   }
 
   let syncedDockHeight = 0;
+  let handheldLayout = false;
   function syncDockHeights() {
     if (!UI.historyPanel || !UI.insightPanel || !UI.bottomDock) return;
     const cinematicActive = shell && shell.dataset.cinematic === 'true';
@@ -160,8 +164,42 @@
     syncedDockHeight = target;
   }
 
+  function isHandheldLayout() {
+    const coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+    const narrowSide = Math.min(window.innerWidth, window.innerHeight);
+    return narrowSide <= 560 || (coarse && window.innerWidth <= 980);
+  }
+
+  function syncLayoutMode() {
+    const next = isHandheldLayout();
+    if (next === handheldLayout) {
+      if (shell) shell.dataset.handheld = handheldLayout ? 'true' : 'false';
+      return;
+    }
+    handheldLayout = next;
+    if (shell) shell.dataset.handheld = handheldLayout ? 'true' : 'false';
+    if (!handheldLayout && paused && pauseReason === 'controls') {
+      setControlsOpen(false);
+      return;
+    }
+    updateUiPanels(true);
+  }
+
   window.addEventListener('resize', resizeCanvas, { passive: true });
   window.addEventListener('resize', syncDockHeights, { passive: true });
+  window.addEventListener('resize', syncLayoutMode, { passive: true });
+  document.addEventListener('fullscreenchange', () => {
+    fullscreenActive = Boolean(currentFullscreenElement());
+    if (!fullscreenActive) unlockLandscapeIfAvailable();
+    resizeCanvas();
+    updateUiPanels(true);
+  });
+  document.addEventListener('webkitfullscreenchange', () => {
+    fullscreenActive = Boolean(currentFullscreenElement());
+    if (!fullscreenActive) unlockLandscapeIfAvailable();
+    resizeCanvas();
+    updateUiPanels(true);
+  });
   let stageObserver = null;
   if (typeof ResizeObserver !== 'undefined' && tankStage) {
     stageObserver = new ResizeObserver(resizeCanvas);
@@ -273,7 +311,7 @@
       const dx = fish.x - x;
       const dy = fish.y - y;
       const d = hypot(dx, dy);
-      const reach = fish.r * 1.3 + scaleWorld(2);
+      const reach = fish.r * 1.3 + scaleWorld(2) + (handheldLayout ? scaleWorld(4) : 0);
       if (d > reach) continue;
       const score = d / Math.max(1, fish.r);
       if (score < bestScore) {
@@ -299,7 +337,7 @@
       SFX.play('ui');
       input.pointer.tapped = false;
     } else {
-      input.pointer.tapped = true;
+      input.pointer.tapped = !(handheldLayout && fullscreenActive);
     }
     canvas.setPointerCapture?.(e.pointerId);
   });
@@ -499,6 +537,7 @@
     F[':'] = A(['00000', '00110', '00110', '00000', '00110', '00110', '00000']);
     F['/'] = A(['00001', '00010', '00100', '01000', '10000', '00000', '00000']);
     F['#'] = A(['01010', '11111', '01010', '01010', '11111', '01010', '01010']);
+    F['·'] = A(['00000', '00000', '00100', '00000', '00000', '00000', '00000']);
     F['-'] = A(['00000', '00000', '00000', '11111', '00000', '00000', '00000']);
     F['='] = A(['00000', '00000', '11111', '00000', '11111', '00000', '00000']);
     F['+'] = A(['00000', '00100', '00100', '11111', '00100', '00100', '00000']);
@@ -1714,11 +1753,13 @@
   let paused = false;
   let controlsOpen = false;
   let cinematic = false;
+  let fullscreenActive = false;
   let currentScenarioId = 'baseline';
   let selectedFishId = null;
   let selectedFishPin = null;
   let highlightedLineage = null;
   let pauseReason = '';
+  let controlsRestorePauseReason = '';
   let pauseClock = 0;
   let last = performance.now();
 
@@ -1821,6 +1862,74 @@
     };
   }
 
+  function currentFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function supportsFullscreen() {
+    if (!handheldLayout) return false;
+    const target = shell;
+    return Boolean(
+      target &&
+        (target.requestFullscreen ||
+          target.webkitRequestFullscreen ||
+          document.fullscreenEnabled ||
+          document.webkitFullscreenEnabled),
+    );
+  }
+
+  async function lockLandscapeIfAvailable() {
+    if (!handheldLayout || !screen.orientation || typeof screen.orientation.lock !== 'function') return;
+    try {
+      await screen.orientation.lock('landscape');
+    } catch (_error) {}
+  }
+
+  function unlockLandscapeIfAvailable() {
+    if (!screen.orientation || typeof screen.orientation.unlock !== 'function') return;
+    try {
+      screen.orientation.unlock();
+    } catch (_error) {}
+  }
+
+  async function setFullscreenMode(open) {
+    const next = Boolean(open);
+    if (!supportsFullscreen()) {
+      updateUiPanels(true);
+      return false;
+    }
+    try {
+      if (next) {
+        try {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        } catch (_error) {
+          window.scrollTo(0, 0);
+        }
+        const request =
+          shell.requestFullscreen ||
+          shell.webkitRequestFullscreen;
+        if (!request) return false;
+        const result = request.call(shell);
+        if (result && typeof result.then === 'function') await result;
+        await lockLandscapeIfAvailable();
+      } else {
+        unlockLandscapeIfAvailable();
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (!exit) return false;
+        const result = exit.call(document);
+        if (result && typeof result.then === 'function') await result;
+      }
+    } catch (_error) {
+      fullscreenActive = Boolean(currentFullscreenElement());
+      updateUiPanels(true);
+      return false;
+    }
+    fullscreenActive = Boolean(currentFullscreenElement());
+    resizeCanvas();
+    updateUiPanels(true);
+    return fullscreenActive === next;
+  }
+
   function resetReplayState() {
     REPLAY.buffer.length = 0;
     REPLAY.bookmarks.length = 0;
@@ -1894,6 +2003,7 @@
     const restoringLiveBranch = snapshot.kind === 'live' && !preserveReturn;
     paused = restoringLiveBranch ? Boolean(snapshot.paused) : true;
     pauseReason = paused ? (restoringLiveBranch ? snapshot.pauseReason || 'manual' : 'replay') : '';
+    controlsRestorePauseReason = '';
     pauseClock = 0;
     simAccumulator = 0;
     uiClock = 0;
@@ -2398,7 +2508,9 @@
         '<article class="event-item"><span class="event-time">T+0:00</span><strong>Waiting for the first event</strong><small>The tank will start filling this timeline as soon as something notable happens.</small></article>';
       return;
     }
+    const maxEvents = handheldLayout && !fullscreenActive ? 4 : g.events.length;
     UI.eventStream.innerHTML = g.events
+      .slice(0, maxEvents)
       .map((event) => {
         const lineage = event.lineage != null ? ` · lineage ${event.lineage}` : '';
         return `<article class="event-item" data-kind="${event.kind}"><span class="event-time">T+${formatEventTime(event.time)}</span><strong>${event.title}${lineage}</strong><small>${event.detail}</small></article>`;
@@ -2664,22 +2776,41 @@
     syncPresetUi();
     syncViewUi();
     syncReplayUi();
+    const fullscreenControls = fullscreenControlsModeActive();
     if (UI.pauseButton) {
       const replayActive = REPLAY.activeSnapshotId != null;
-      UI.pauseButton.textContent = replayActive ? 'Resume Snapshot [P]' : paused ? 'Resume [P]' : 'Pause [P]';
-      UI.pauseButton.dataset.state = replayActive ? 'replay' : paused ? 'paused' : 'running';
+      UI.pauseButton.textContent = fullscreenControls
+        ? 'Back to Tank [P]'
+        : replayActive
+          ? 'Resume Snapshot [P]'
+          : paused
+            ? 'Resume [P]'
+            : 'Pause [P]';
+      UI.pauseButton.dataset.state = fullscreenControls ? 'controls' : replayActive ? 'replay' : paused ? 'paused' : 'running';
     }
     if (shell) {
       shell.dataset.cinematic = cinematic ? 'true' : 'false';
       shell.dataset.controls = controlsOpen && !cinematic ? 'open' : 'closed';
+      shell.dataset.fullscreen = fullscreenActive ? 'true' : 'false';
     }
     if (UI.controlsToggleButton) {
-      UI.controlsToggleButton.textContent = controlsOpen && !cinematic ? 'Hide Controls [T]' : 'Controls [T]';
+      UI.controlsToggleButton.textContent = controlsOpen && !cinematic
+        ? fullscreenControls
+          ? 'Back to Tank [T]'
+          : 'Hide Controls [T]'
+        : 'Controls [T]';
       UI.controlsToggleButton.dataset.state = controlsOpen && !cinematic ? 'active' : 'idle';
     }
+    if (UI.controlsCloseButton) UI.controlsCloseButton.textContent = fullscreenControls ? 'Back to tank' : 'Close [T]';
     if (UI.focusButton) {
       UI.focusButton.textContent = cinematic ? 'Exit Focus [C]' : 'Focus [C]';
       UI.focusButton.dataset.state = cinematic ? 'active' : 'idle';
+    }
+    if (UI.fullscreenButton) {
+      UI.fullscreenButton.hidden = !supportsFullscreen();
+      UI.fullscreenButton.disabled = !supportsFullscreen();
+      UI.fullscreenButton.textContent = fullscreenActive ? 'Exit Full [F]' : 'Fullscreen [F]';
+      UI.fullscreenButton.dataset.state = fullscreenActive ? 'active' : 'idle';
     }
     if (MUSIC) renderMusicUi();
     const subjectPin = currentSubjectPin();
@@ -3085,6 +3216,50 @@
     resetSimulation();
   }
 
+  function setControlsOpen(open, options = {}) {
+    const { playSfx = false } = options;
+    const next = Boolean(open);
+    if (next && cinematic) cinematic = false;
+    if (controlsOpen === next) {
+      updateUiPanels(true);
+      if (playSfx) SFX.play('ui');
+      return;
+    }
+    controlsOpen = next;
+    if (handheldLayout) {
+      if (controlsOpen) {
+        if (paused) {
+          if (pauseReason !== 'controls') controlsRestorePauseReason = pauseReason || 'manual';
+          pauseReason = 'controls';
+          pauseClock = 0;
+          if (MUSIC) MUSIC.setSimulationPaused(true);
+          syncControlLabels();
+          updateUiPanels(true);
+        } else {
+          controlsRestorePauseReason = '';
+          pauseGame('controls');
+        }
+      } else if (paused && pauseReason === 'controls') {
+        const restoreReason = controlsRestorePauseReason;
+        controlsRestorePauseReason = '';
+        if (restoreReason && restoreReason !== 'controls') {
+          pauseReason = restoreReason;
+          pauseClock = 0;
+          syncControlLabels();
+          updateUiPanels(true);
+        } else {
+          resumeGame();
+        }
+      } else {
+        controlsRestorePauseReason = '';
+        updateUiPanels(true);
+      }
+    } else {
+      updateUiPanels(true);
+    }
+    if (playSfx) SFX.play('ui');
+  }
+
   function bindUi() {
     syncControlInputs();
     syncPresetUi();
@@ -3098,31 +3273,31 @@
     }
     if (UI.controlsToggleButton) {
       UI.controlsToggleButton.addEventListener('click', () => {
-        if (cinematic) cinematic = false;
-        controlsOpen = !controlsOpen;
-        updateUiPanels(true);
-        SFX.play('ui');
+        setControlsOpen(!controlsOpen, { playSfx: true });
       });
     }
     if (UI.controlsCloseButton) {
       UI.controlsCloseButton.addEventListener('click', () => {
-        controlsOpen = false;
-        updateUiPanels(true);
-        SFX.play('ui');
+        setControlsOpen(false, { playSfx: true });
       });
     }
     if (UI.controlScrim) {
       UI.controlScrim.addEventListener('click', () => {
-        controlsOpen = false;
-        updateUiPanels(true);
+        setControlsOpen(false);
       });
     }
     if (UI.focusButton) {
       UI.focusButton.addEventListener('click', () => {
         cinematic = !cinematic;
-        if (cinematic) controlsOpen = false;
-        updateUiPanels(true);
+        if (cinematic) setControlsOpen(false);
+        else updateUiPanels(true);
         SFX.play('ui');
+      });
+    }
+    if (UI.fullscreenButton) {
+      UI.fullscreenButton.addEventListener('click', async () => {
+        const changed = await setFullscreenMode(!fullscreenActive);
+        if (changed) SFX.play('ui');
       });
     }
     if (UI.musicToolbarToggleButton && MUSIC) {
@@ -3191,7 +3366,7 @@
 
     for (const button of UI.scenarioButtons) {
       button.addEventListener('click', () => {
-        controlsOpen = false;
+        setControlsOpen(false);
         applyScenario(button.dataset.scenario);
         SFX.play('ui');
       });
@@ -3268,6 +3443,7 @@
     if (paused) return;
     paused = true;
     pauseReason = reason;
+    if (reason !== 'controls') controlsRestorePauseReason = '';
     pauseClock = 0;
     input.down = Object.create(null);
     input.pressed = Object.create(null);
@@ -3282,6 +3458,7 @@
     const leavingReplay = REPLAY.activeSnapshotId != null && pauseReason === 'replay';
     paused = false;
     pauseReason = '';
+    controlsRestorePauseReason = '';
     pauseClock = 0;
     if (leavingReplay) REPLAY.activeSnapshotId = null;
     input.down = Object.create(null);
@@ -3297,6 +3474,14 @@
   }
 
   function togglePause() {
+    if (controlsOpen && handheldLayout && pauseReason === 'controls') {
+      setControlsOpen(false, { playSfx: true });
+      return;
+    }
+    if (handheldLayout && fullscreenActive && !paused) {
+      setControlsOpen(true, { playSfx: true });
+      return;
+    }
     if (paused) resumeGame();
     else pauseGame('manual');
     SFX.play('ui');
@@ -3338,6 +3523,7 @@
   }
 
   let g = newSimulation();
+  syncLayoutMode();
 
   function shake(amt) {
     g.shake = Math.min(10, g.shake + amt);
@@ -3651,6 +3837,7 @@
     refreshFormationCache();
     paused = false;
     pauseReason = '';
+    controlsRestorePauseReason = '';
     pauseClock = 0;
     input.down = Object.create(null);
     input.pressed = Object.create(null);
@@ -4495,6 +4682,8 @@
 
   function drawHud(c) {
     const counts = populationBreakdown();
+    const scenario = currentScenario();
+    const phaseLabel = g.env.disturbance.active ? disturbanceLabel().toUpperCase() : seasonLabel(g.env.season);
     c.save();
     c.globalAlpha = 1;
     c.fillStyle = COL.ui0;
@@ -4507,6 +4696,10 @@
     const fishCol = g.fish.length <= SIM.immigrationThreshold ? COL.orange : COL.white;
     drawText(c, `FISH ${g.fish.length} FOOD ${g.food.length} AVG E ${Math.round(g.avgEnergy)}`, 6, 2, fishCol, 1);
     drawText(c, `JUV ${counts.juvenile} ADULT ${counts.adult} HERB ${counts.herbivore} CARN ${counts.carnivore}`, 6, 10, COL.gray, 1);
+    if (handheldLayout || fullscreenActive) {
+      drawText(c, `SEED ${g.run.seed} ${scenario.label.toUpperCase()}`, W - 6, 2, COL.foam, 1, 'right');
+      drawText(c, `B ${g.stats.births} D ${g.stats.deaths} P ${g.stats.predations} ${phaseLabel}`, W - 6, 10, COL.gray, 1, 'right');
+    }
     c.restore();
   }
 
@@ -4534,6 +4727,67 @@
       drawText(c, wrapped[i], x + padX, y + padY + i * lineH, COL.foam, 1);
     }
     c.restore();
+  }
+
+  function drawTankConsole(c) {
+    const entries = g.events.slice(0, handheldLayout ? 3 : 4).reverse();
+    const x = 8;
+    const y = WORLD.hudH + 7;
+    const width = handheldLayout ? scaleWorld(108) : scaleWorld(118);
+    const lineH = 8;
+    const entryGap = 4;
+    const maxLines = handheldLayout ? 6 : 8;
+    const lines = ['RECENT EVENTS'];
+    if (!entries.length) {
+      lines.push('T+0:00');
+      lines.push('WAITING FOR THE FIRST EVENT');
+    } else {
+      for (const event of entries) {
+        if (lines.length >= maxLines + 1) break;
+        const label = `T+${formatEventTime(event.time)}`;
+        const title = `${event.title}${event.lineage != null ? ` · LINE ${event.lineage}` : ''}`.toUpperCase();
+        const wrapped = wrapBitmapText(title, width, 1);
+        lines.push(label);
+        for (const line of wrapped) {
+          if (lines.length >= maxLines + 1) break;
+          lines.push(line);
+        }
+        if (lines.length < maxLines + 1) lines.push('');
+      }
+      while (lines.length && !lines[lines.length - 1]) lines.pop();
+    }
+
+    const totalLines = lines.length;
+    const height = totalLines * lineH + Math.max(0, (entries.length ? entries.length - 1 : 0) * entryGap);
+
+    c.save();
+    c.shadowColor = 'rgba(0,0,0,0.58)';
+    c.shadowBlur = 0;
+    c.shadowOffsetX = 1;
+    c.shadowOffsetY = 1;
+
+    let yy = y;
+    let logicalLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const normalized = totalLines <= 1 ? 0.5 : logicalLine / (totalLines - 1);
+      const topFade = clamp((normalized - 0.04) / 0.26, 0, 1);
+      const bottomFade = clamp((1 - normalized - 0.02) / 0.18, 0, 1);
+      const alpha = clamp(Math.min(topFade, bottomFade) * 0.9 + 0.08, 0.12, 0.92);
+      let color = `rgba(168,230,255,${alpha})`;
+      if (i === 0) color = `rgba(246,242,255,${Math.min(0.96, alpha + 0.12)})`;
+      else if (/^T\+\d/.test(line)) color = `rgba(168,230,255,${Math.min(0.82, alpha)})`;
+      else color = `rgba(214,226,255,${Math.min(0.9, alpha + 0.04)})`;
+      if (line) drawText(c, line, x, yy, color, 1);
+      yy += lineH;
+      logicalLine++;
+      if (line === '' && i !== lines.length - 1) yy += entryGap;
+    }
+    c.restore();
+  }
+
+  function fullscreenControlsModeActive() {
+    return handheldLayout && pauseReason === 'controls' && controlsOpen;
   }
 
   function renderReplayOverlay(c) {
@@ -5325,6 +5579,7 @@
     ctx.globalAlpha = 1;
 
     drawHud(ctx);
+    drawTankConsole(ctx);
 
     const lines = [];
     const introAlpha = clamp(1 - Math.max(0, g.time - 3.5) / 1.5, 0, 1);
@@ -5332,7 +5587,7 @@
       lines.push('AUTONOMOUS ECOLOGY');
       lines.push('THE CONSOLE FRAMES THE EXPERIMENT');
       lines.push('TUNE FOOD, METABOLISM, FERTILITY, SEASONS');
-      lines.push('P PAUSE  R NEXT SEED  TAP TO PAUSE');
+      lines.push(handheldLayout && fullscreenActive ? 'TAP TO TUNE  P OPENS CONTROLS  R NEXT SEED' : 'P PAUSE  R NEXT SEED  TAP TO PAUSE');
       drawHintPanel(ctx, lines, introAlpha);
     } else if (g.env.disturbance.active) {
       lines.push(disturbanceLabel().toUpperCase());
@@ -5349,7 +5604,7 @@
     }
 
     if (paused && pauseReason === 'replay') renderReplayOverlay(ctx);
-    else if (paused) renderPauseOverlay(ctx);
+    else if (paused && !fullscreenControlsModeActive()) renderPauseOverlay(ctx);
     postFx();
     drawWatchOverlay(ctx);
     drawFrame(ctx);
@@ -5404,16 +5659,13 @@
     }
 
     if (consumePressed('KeyT')) {
-      if (cinematic) cinematic = false;
-      controlsOpen = !controlsOpen;
-      updateUiPanels(true);
-      SFX.play('ui');
+      setControlsOpen(!controlsOpen, { playSfx: true });
     }
 
     if (consumePressed('KeyC')) {
       cinematic = !cinematic;
-      if (cinematic) controlsOpen = false;
-      updateUiPanels(true);
+      if (cinematic) setControlsOpen(false);
+      else updateUiPanels(true);
       SFX.play('ui');
     }
 
@@ -5431,6 +5683,12 @@
         updateUiPanels(true);
         SFX.play('ui');
       }
+    }
+
+    if (consumePressed('KeyF')) {
+      setFullscreenMode(!fullscreenActive).then((changed) => {
+        if (changed) SFX.play('ui');
+      });
     }
 
     if (MUSIC && consumePressed('KeyM')) {
@@ -5453,7 +5711,7 @@
       SFX.play('ui');
     }
 
-    if (consumePressed('KeyP', 'Space', 'Escape') || input.pointer.tapped) {
+    if (consumePressed('KeyP', 'Space', 'Escape') || (input.pointer.tapped && !(handheldLayout && fullscreenActive))) {
       togglePause();
     }
 
