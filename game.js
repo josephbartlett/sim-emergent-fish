@@ -395,10 +395,29 @@
 
   const MUSIC = window.FishtankMusic
     ? window.FishtankMusic.createAmbientMusicController({
-        src: 'audio/glass-shelter.mid',
-        title: 'Glass Shelter',
-        tempo: 64,
-        note: 'shelter-pocket ambience',
+        tracks: [
+          {
+            src: 'audio/glass-shelter.mid',
+            title: 'Glass Shelter',
+            tempo: 64,
+            note: 'shelter-pocket ambience',
+          },
+          {
+            src: 'audio/moon-plankton.mid',
+            title: 'Moon Plankton',
+            note: 'night-water drift ambience',
+          },
+          {
+            src: 'audio/seed-rain.mid',
+            title: 'Seed Rain',
+            note: 'bloom-cycle ambience',
+          },
+          {
+            src: 'audio/stonewake-drift.mid',
+            title: 'Stonewake Drift',
+            note: 'open-water glide ambience',
+          },
+        ],
         attribution: 'ChatGPT',
         defaultVolume: 1,
         onStateChange: renderMusicUi,
@@ -5436,6 +5455,8 @@
       watchCardVisible: WATCH_VIEW.cardVisible,
       selectedPresent: Boolean(findFishById(selectedFishId)),
     }),
+    musicState: () => (MUSIC ? MUSIC.getState() : null),
+    advanceMusicTrack: () => (MUSIC ? MUSIC.advanceTrack() : null),
     toggleWatchCard: (value) => toggleWatchCard(value),
     setView: (key, value) => {
       if (!(key in VIEW)) return { ...VIEW };

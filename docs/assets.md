@@ -27,8 +27,11 @@ The app loads these PNGs directly when present.
 Bundled music currently lives in:
 
 - [`audio/glass-shelter.mid`](../audio/glass-shelter.mid)
+- [`audio/moon-plankton.mid`](../audio/moon-plankton.mid)
+- [`audio/seed-rain.mid`](../audio/seed-rain.mid)
+- [`audio/stonewake-drift.mid`](../audio/stonewake-drift.mid)
 
-`Glass Shelter` is shipped as the original MIDI source and rendered in-browser for playback. The composition is attributed to ChatGPT.
+These cues are shipped as original MIDI sources, rendered in-browser for playback, and rotated automatically by the ambient music controller. The compositions are attributed to ChatGPT.
 
 ## Fallback Behavior
 

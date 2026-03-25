@@ -3,10 +3,10 @@
 
   const DEFAULT_TEMPO = 500000;
   const VOLUME_KEY = 'fishtank.music.volume.v2';
-  const ENABLED_KEY = 'fishtank.music.enabled.v3';
+  const ENABLED_KEY = 'fishtank.music.enabled.v4';
   const CACHE_DB = 'fishtank-audio-cache';
   const CACHE_STORE = 'renders';
-  const RENDER_CACHE_VERSION = 'glass-shelter-v3-mono12';
+  const RENDER_CACHE_VERSION = 'ambient-pack-v1-mono12';
 
   const clamp = (value, min, max) => (value < min ? min : value > max ? max : value);
 
@@ -209,7 +209,12 @@
       notes.reduce((max, note) => Math.max(max, note.end), 0),
     );
 
-    return { notes, duration };
+    const initialTempo = tempoMap[0]?.microsecondsPerQuarter || DEFAULT_TEMPO;
+    return {
+      notes,
+      duration,
+      tempoBpm: Math.max(1, Math.round(60000000 / initialTempo)),
+    };
   }
 
   function noteFrequency(note) {
@@ -447,6 +452,7 @@
   function createAmbientMusicController(options) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const {
+      tracks = [],
       src,
       title,
       tempo,
@@ -457,29 +463,65 @@
       onStateChange = null,
     } = options;
 
+    const playlist = (Array.isArray(tracks) && tracks.length ? tracks : [{ src, title, tempo, note }]).filter(
+      (track) => track && track.src,
+    );
+
+    function normalizeTrackIndex(index) {
+      return ((index % playlist.length) + playlist.length) % playlist.length;
+    }
+
+    function trackAt(index) {
+      return playlist[normalizeTrackIndex(index)];
+    }
+
+    function cacheKey(index) {
+      const track = trackAt(index);
+      return `${RENDER_CACHE_VERSION}:${track.src}`;
+    }
+
     const state = {
-      available: Boolean(AudioCtx),
+      available: Boolean(AudioCtx) && playlist.length > 0,
       enabled: false,
       loading: false,
       ready: false,
       error: '',
-      title,
-      tempo,
-      note,
+      title: playlist[0]?.title || title || 'Ambient',
+      tempo: playlist[0]?.tempo || tempo || 0,
+      note: playlist[0]?.note || note || '',
       attribution,
       volume: loadStoredVolume(defaultVolume),
       preferredEnabled: loadStoredEnabled(defaultEnabled),
       simulationPaused: false,
+      trackIndex: 0,
+      trackCount: playlist.length,
     };
 
     let context = null;
     let gainNode = null;
     let sourceNode = null;
-    let buffer = null;
-    let renderPromise = null;
+    const buffers = new Map();
+    const trackMeta = new Map();
+    const renderPromises = new Map();
     let warmScheduled = false;
+    let warmTimeoutId = 0;
+    let startPromise = Promise.resolve();
+
+    function syncTrackState(index) {
+      const normalized = normalizeTrackIndex(index);
+      const track = trackAt(normalized);
+      const meta = trackMeta.get(normalized);
+      state.trackIndex = normalized;
+      state.title = track.title;
+      state.tempo = track.tempo || meta?.tempo || 0;
+      state.note = track.note || '';
+      return track;
+    }
+
+    syncTrackState(0);
 
     function snapshot() {
+      const nextTrack = trackAt(state.trackIndex + 1);
       const preparing = state.loading && state.preferredEnabled;
       return {
         ...state,
@@ -487,10 +529,10 @@
         noteLabel: state.error
           ? `Ambient unavailable · ${state.error}`
           : preparing
-            ? 'Preparing ambient cue… first start can take a moment.'
+            ? `Preparing ${state.title}… first start can take a moment.`
             : state.preferredEnabled && state.simulationPaused
-              ? `Paused with tank · ${tempo} BPM · calm cue · ${attribution} composition`
-              : `${state.enabled ? 'On' : 'Off'} · ${tempo} BPM · calm cue · ${attribution} composition`,
+              ? `Paused with tank · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM`
+              : `${state.enabled ? 'On' : 'Off'} · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM${nextTrack ? ` · next ${nextTrack.title}` : ''}`,
       };
     }
 
@@ -498,6 +540,12 @@
       const detail = snapshot();
       if (typeof onStateChange === 'function') onStateChange(detail);
       return detail;
+    }
+
+    function clearWarmTimeout() {
+      if (!warmTimeoutId) return;
+      window.clearTimeout(warmTimeoutId);
+      warmTimeoutId = 0;
     }
 
     function syncGain() {
@@ -516,73 +564,117 @@
       return context;
     }
 
-    async function ensureBuffer() {
-      if (buffer) return buffer;
-      if (renderPromise) return renderPromise;
-      state.loading = true;
-      state.error = '';
-      emit();
-      renderPromise = (async () => {
-        const cached = await readCachedRender(RENDER_CACHE_VERSION);
+    async function ensureBuffer(index, announce = false) {
+      const normalized = normalizeTrackIndex(index);
+      if (buffers.has(normalized)) return buffers.get(normalized);
+      if (renderPromises.has(normalized)) {
+        if (announce) {
+          state.loading = true;
+          state.error = '';
+          emit();
+          try {
+            return await renderPromises.get(normalized);
+          } finally {
+            state.loading = false;
+            emit();
+          }
+        }
+        return renderPromises.get(normalized);
+      }
+
+      if (announce) {
+        state.loading = true;
+        state.error = '';
+        emit();
+      }
+
+      const promise = (async () => {
+        const cached = await readCachedRender(cacheKey(normalized));
         if (cached instanceof ArrayBuffer) return decodeCachedRender(cached);
-        const response = await fetch(src, { cache: 'force-cache' });
-        if (!response.ok) throw new Error(`Could not load ${src}.`);
+        const track = trackAt(normalized);
+        const response = await fetch(track.src, { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`Could not load ${track.src}.`);
         const midi = parseMidi(await response.arrayBuffer());
+        trackMeta.set(normalized, { tempo: midi.tempoBpm, duration: midi.duration });
         const rendered = await renderMidiToBuffer(midi);
-        storeCachedRender(RENDER_CACHE_VERSION, encodeWav(rendered));
+        storeCachedRender(cacheKey(normalized), encodeWav(rendered));
         return rendered;
       })()
         .then((rendered) => {
-          buffer = rendered;
+          buffers.set(normalized, rendered);
+          if (state.trackIndex === normalized) syncTrackState(normalized);
           state.ready = true;
-          return buffer;
+          return rendered;
         })
         .catch((error) => {
           state.error = error && error.message ? error.message : 'Unknown audio error.';
           throw error;
         })
         .finally(() => {
-          state.loading = false;
-          emit();
-          renderPromise = null;
-        });
-      return renderPromise;
-    }
-
-    async function ensureSource() {
-      if (sourceNode) return sourceNode;
-      await ensureContext();
-      const rendered = await ensureBuffer();
-      sourceNode = context.createBufferSource();
-      sourceNode.buffer = rendered;
-      sourceNode.loop = true;
-      sourceNode.connect(gainNode);
-      sourceNode.start(0);
-      return sourceNode;
-    }
-
-    function queuePlaybackStart() {
-      ensureBuffer()
-        .then(async () => {
-          if (!state.preferredEnabled || state.simulationPaused || state.enabled || !context) {
+          renderPromises.delete(normalized);
+          if (announce) {
+            state.loading = false;
             emit();
-            return;
           }
-          await startPlayback();
-        })
+        });
+      renderPromises.set(normalized, promise);
+      return promise;
+    }
+
+    async function disposeSource() {
+      if (!sourceNode) return;
+      const current = sourceNode;
+      sourceNode = null;
+      current.onended = null;
+      try {
+        current.stop();
+      } catch {}
+      try {
+        current.disconnect();
+      } catch {}
+    }
+
+    async function startTrack(index) {
+      const normalized = normalizeTrackIndex(index);
+      syncTrackState(normalized);
+      emit();
+      await ensureContext();
+      const rendered = await ensureBuffer(normalized, true);
+      await disposeSource();
+      const current = context.createBufferSource();
+      current.buffer = rendered;
+      current.loop = false;
+      current.connect(gainNode);
+      current.onended = () => {
+        if (sourceNode !== current) return;
+        sourceNode = null;
+        if (!state.preferredEnabled || state.simulationPaused) {
+          state.enabled = false;
+          emit();
+          return;
+        }
+        queuePlaybackStart(normalized + 1);
+      };
+      sourceNode = current;
+      current.start(0);
+      await context.resume();
+      state.enabled = true;
+      state.error = '';
+      emit();
+      scheduleNextTrackWarm(normalized);
+    }
+
+    function queuePlaybackStart(index) {
+      const normalized = normalizeTrackIndex(index);
+      startPromise = startPromise
+        .catch(() => {})
+        .then(() => startTrack(normalized))
         .catch((error) => {
           state.enabled = false;
           state.error = error && error.message ? error.message : 'Unknown audio error.';
           emit();
         });
-    }
-
-    async function startPlayback() {
-      await ensureSource();
-      await context.resume();
-      state.enabled = true;
-      state.error = '';
-      emit();
+      return startPromise;
     }
 
     async function setEnabled(nextEnabled) {
@@ -595,14 +687,27 @@
       storeEnabled(state.preferredEnabled);
       if (nextEnabled) {
         await ensureContext();
-        await ensureSource();
-        if (state.simulationPaused) {
-          await context.suspend();
+        if (sourceNode) {
+          if (state.simulationPaused) {
+            await context.suspend();
+            state.enabled = false;
+            state.error = '';
+            emit();
+          } else {
+            await context.resume();
+            state.enabled = true;
+            state.error = '';
+            emit();
+            scheduleNextTrackWarm(state.trackIndex);
+          }
+        } else if (state.simulationPaused) {
+          await ensureBuffer(state.trackIndex, true);
           state.enabled = false;
           state.error = '';
           emit();
+          scheduleNextTrackWarm(state.trackIndex);
         } else {
-          await startPlayback();
+          await queuePlaybackStart(state.trackIndex);
         }
       } else if (context) {
         await context.suspend();
@@ -620,8 +725,13 @@
         if (state.preferredEnabled) {
           ensureContext()
             .then(async () => {
-              if (!state.simulationPaused) await context.resume();
-              queuePlaybackStart();
+              if (!state.simulationPaused && sourceNode) {
+                await context.resume();
+                state.enabled = true;
+                emit();
+              } else if (!state.simulationPaused) {
+                queuePlaybackStart(state.trackIndex);
+              }
             })
             .catch((error) => {
               state.error = error && error.message ? error.message : 'Unknown audio error.';
@@ -648,11 +758,28 @@
       return emit();
     }
 
+    async function warmTrack(index) {
+      try {
+        await ensureBuffer(index, false);
+      } catch {}
+    }
+
+    function scheduleNextTrackWarm(currentIndex) {
+      clearWarmTimeout();
+      if (playlist.length <= 1) return;
+      const nextIndex = normalizeTrackIndex(currentIndex + 1);
+      if (buffers.has(nextIndex) || renderPromises.has(nextIndex)) return;
+      warmTimeoutId = window.setTimeout(() => {
+        warmTimeoutId = 0;
+        warmTrack(nextIndex);
+      }, 1400);
+    }
+
     function scheduleWarmRender() {
       if (warmScheduled || !state.available) return;
       warmScheduled = true;
       const warm = () => {
-        ensureBuffer().catch((error) => {
+        ensureBuffer(state.trackIndex, false).catch((error) => {
           state.loading = false;
           state.error = error && error.message ? error.message : 'Unknown audio error.';
           emit();
@@ -676,9 +803,13 @@
           await context.suspend();
           state.enabled = false;
         } else {
-          await ensureSource();
-          await context.resume();
-          state.enabled = true;
+          if (sourceNode) {
+            await context.resume();
+            state.enabled = true;
+            scheduleNextTrackWarm(state.trackIndex);
+          } else {
+            await queuePlaybackStart(state.trackIndex);
+          }
         }
         state.error = '';
       } catch (error) {
@@ -688,13 +819,26 @@
       return emit();
     }
 
+    function advanceTrack() {
+      const nextIndex = state.trackIndex + 1;
+      if (state.preferredEnabled && !state.simulationPaused) {
+        queuePlaybackStart(nextIndex);
+      } else {
+        syncTrackState(nextIndex);
+        emit();
+        warmTrack(nextIndex);
+        scheduleNextTrackWarm(nextIndex);
+      }
+      return snapshot();
+    }
+
     function getState() {
       return snapshot();
     }
 
     scheduleWarmRender();
     emit();
-    return { toggle, setVolume, getState, setSimulationPaused };
+    return { toggle, setVolume, getState, setSimulationPaused, advanceTrack };
   }
 
   window.FishtankMusic = { createAmbientMusicController };
