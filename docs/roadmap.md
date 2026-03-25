@@ -4,12 +4,12 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest tagged release: `v0.5.0`
+Latest tagged release: `v0.6.0`
 
 Current emphasis:
 
 - keep `main` releaseable
-- keep the ambient observatory layer stable while the next release makes mobile feel tank-first instead of dashboard-first
+- keep the mobile observatory release stable while the next pass makes handheld controls and affordances feel more native
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -29,7 +29,9 @@ Residual risks to keep an eye on:
 - screenshot and layout regressions still depend on visual QA more than automated image baselines
 - the seed-audit thresholds are intentionally conservative and should be revisited as ecology tuning evolves
 - seed balance varies meaningfully by habitat layout, so future ecology changes should keep using deterministic seed checks
-- mobile portrait usability still lags the desktop and landscape experience, especially when controls and lower panels compete with the tank
+- handheld controls are still text-heavy and can feel more like a drawer than a native observatory console
+- mobile fullscreen still needs another polish pass around icons, condensed affordances, and breakpoint-specific framing
+- desktop fullscreen remains deferred until it has a cleaner UX and stronger breakpoint coverage
 
 ## Planned Version Targets
 
@@ -112,23 +114,42 @@ Follow-on notes:
 
 Theme: mobile observatory and tank-first handheld UX.
 
+Delivered in the latest tagged release:
+
+- tank-first handheld layout in both portrait and fullscreen modes
+- portrait-safe tank sizing and fullscreen framing that preserve the aquarium aspect ratio
+- touch-friendlier fish selection on smaller screens
+- handheld-specific fullscreen controls flow where the tank remains visible and the generic pause slab stays out of the way
+- VGA in-tank HUD and event console so mobile observability stays inside the aquarium instead of relying on the full desktop header
+- compact mobile title strip and a reduced lower event stack so the inspector stays closer to the tank on phones
+
+Follow-on notes:
+
+- keep the tank centered and maximized within aspect-ratio limits across more mobile breakpoints
+- preserve button-driven control flow in fullscreen so accidental taps do not interrupt the run
+- treat the in-tank event console as supporting telemetry, not a replacement for the lower event history
+- keep desktop fullscreen out of release scope until it is intentionally designed and tested instead of piggybacking on the handheld mode
+
+## v0.7.0
+
+Theme: mobile-native controls and observatory iconography.
+
 Target features:
 
-- make the tank the dominant surface on phones in both portrait and landscape
-- treat mobile controls as a modal sheet or drawer that pauses the simulation while open
-- improve touch selection and tracking so fish remain easy to pin on smaller screens
-- add a translucent in-tank event console that mirrors the recent-event feed with soft fade masks
-- add a compact mobile/observatory icon pass, likely with Asset Forge, for controls that need stronger visual affordance
-- prefer responsive re-layout and optional landscape/fullscreen prompts over hard orientation requirements
-- capture a deliberate screenshot set across mobile breakpoints before release
+- replace some of the current handheld text labels with tighter VGA-style icons and more mobile-native control affordances
+- simplify the fullscreen control sheet so it feels more like an observatory console than a repurposed desktop drawer
+- use Asset Forge for a small icon pass where that improves legibility without cluttering the tank
+- tighten spacing and affordances for music, pause, controls, and fullscreen actions on handheld
+- capture a deliberate screenshot set across phone breakpoints after the control/icon pass lands
+- decide later whether desktop fullscreen should exist at all, and only reintroduce it with dedicated desktop testing
 
 Release posture:
 
 - mobile should feel intentional without degrading the desktop observatory
-- the tank remains the main event; controls and diagnostics stay subordinate
-- the event console should help both mobile and desktop, not become another bulky panel
+- icons should support quick recognition, not replace every label blindly
+- the tank remains the main event; controls stay subordinate and touch-friendly
 
-## v0.7.0
+## v0.8.0
 
 Theme: stronger spatial ecology.
 
@@ -138,7 +159,7 @@ Target features:
 - nursery behavior around formations and wake zones
 - stronger patrol, refuge, and ambush structure
 
-## v0.8.0
+## v0.9.0
 
 Theme: experiment hardening.
 

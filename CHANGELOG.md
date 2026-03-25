@@ -8,8 +8,28 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ### Changed
 
-- roadmap planning so `v0.6.0` now targets a tank-first mobile observatory pass with modal controls, touch-first tracking, and an in-tank event console
-- release sequencing so stronger spatial ecology moves to `v0.7.0` and experiment hardening moves to `v0.8.0`
+- roadmap planning so `v0.7.0` now targets mobile-native controls and observatory iconography
+- release sequencing so stronger spatial ecology moves to `v0.8.0` and experiment hardening moves to `v0.9.0`
+
+## [0.6.0] - 2026-03-25
+
+### Added
+
+- a tank-first handheld observatory flow with a compact mobile title strip, fullscreen handheld mode, and VGA in-tank event text
+- handheld-specific fullscreen controls so the control sheet can open over the tank without dropping into the desktop pause slab
+
+### Changed
+
+- mobile portrait sizing so the aquarium keeps its aspect ratio instead of looking squashed in the non-fullscreen stack
+- mobile fullscreen framing so the tank stays centered, respects aspect ratio, and scales larger when the browser allows landscape rotation
+- handheld interaction so fish tapping is more forgiving and the lower recent-event stack is capped to keep the inspector closer to the tank
+- the roadmap so the next mobile-focused release shifts to mobile-native controls and observatory iconography
+- fullscreen scope so `v0.6.0` ships the handheld fullscreen flow and explicitly defers desktop fullscreen until it is better tested
+
+### Fixed
+
+- fullscreen targeting so the whole shell, not just the tank panel, enters fullscreen and can still surface the handheld control sheet
+- handheld fullscreen interaction so empty taps on the tank no longer pause or unexpectedly open controls
 
 ## [0.5.0] - 2026-03-25
 
