@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-24
+
 ### Added
 
 - fish-subject watchability surfaces, including persistent watch names, fish story counters, a fish-centric watch feed in the inspector, and an in-tank subject card that can tuck away without clearing the selected subject
