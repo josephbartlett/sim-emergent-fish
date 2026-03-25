@@ -245,7 +245,7 @@
                   <button type="button" class="chrome-button chrome-subtle" id="inspect-clear">Clear [X]</button>
                 </div>
               </div>
-              <p id="inspect-summary" class="card-note">Click any fish in the tank to pin it. Empty-water taps still pause the run.</p>
+              <p id="inspect-summary" class="card-note">Click any fish in the tank to pin it. Click the same fish again to hide or restore the in-tank card. Empty-water taps still pause the run.</p>
               <div id="inspect-grid" aria-label="Selected fish stats">
                 <article class="inspect-chip">
                   <span>Archetype</span>
@@ -282,6 +282,51 @@
               </div>
               <p id="inspect-target" class="card-note">No fish selected.</p>
               <p id="inspect-lineage-note" class="card-note">Lineage highlighting is off.</p>
+              <div id="watch-panel" aria-label="Watchability tools for the selected fish">
+                <div class="card-head compact-head">
+                  <div>
+                    <span class="panel-kicker">Watch Story</span>
+                    <h2>Stay with this fish</h2>
+                  </div>
+                  <p>Story counters and a fish-centric event feed stay pinned to the selected subject, even through replay scrubs. Click the same fish again to tuck the in-tank card away without clearing the subject.</p>
+                </div>
+                <div id="watch-grid" aria-label="Selected fish story stats">
+                  <article class="inspect-chip watch-chip">
+                    <span>Age</span>
+                    <strong id="watch-age">-</strong>
+                  </article>
+                  <article class="inspect-chip watch-chip">
+                    <span>Meals</span>
+                    <strong id="watch-meals">-</strong>
+                  </article>
+                  <article class="inspect-chip watch-chip">
+                    <span>Hunts</span>
+                    <strong id="watch-hunts">-</strong>
+                  </article>
+                  <article class="inspect-chip watch-chip">
+                    <span>Offspring</span>
+                    <strong id="watch-offspring">-</strong>
+                  </article>
+                  <article class="inspect-chip watch-chip">
+                    <span>Status</span>
+                    <strong id="watch-status">-</strong>
+                  </article>
+                </div>
+                <div class="card-head compact-head">
+                  <div>
+                    <span class="panel-kicker">Watch Feed</span>
+                    <h2>Selected events</h2>
+                  </div>
+                  <p id="watch-feed-note">Recent events for the pinned fish or lineage.</p>
+                </div>
+                <div id="watch-feed" aria-live="polite">
+                  <article class="event-item">
+                    <span class="event-time">Watch</span>
+                    <strong>No subject pinned</strong>
+                    <small>Pick a fish to start a fish-centric event feed.</small>
+                  </article>
+                </div>
+              </div>
             </div>
             <div class="callout-stack">
               <p class="callout" id="season-callout">Seasonal pressure is stable.</p>

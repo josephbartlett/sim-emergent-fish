@@ -6,9 +6,18 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- fish-subject watchability surfaces, including persistent watch names, fish story counters, a fish-centric watch feed in the inspector, and an in-tank subject card that can tuck away without clearing the selected subject
+
 ### Changed
 
 - roadmap planning to make `v0.3.0` a watchability and attachment release, with stronger spatial ecology moved to `v0.4.0` and experiment hardening moved to `v0.5.0`
+- replay/browser regression coverage now exercises fish-subject persistence and watch-card persistence alongside the existing scrub and bookmark stress checks
+
+### Fixed
+
+- pinned fish handling so tracked subjects keep a readable off-snapshot or final-state identity instead of collapsing back to a generic inspector state
 
 ## [0.2.0] - 2026-03-24
 

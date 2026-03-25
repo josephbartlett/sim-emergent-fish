@@ -32,7 +32,7 @@ python3 scripts/check_replay_stress.py
 - autonomous grazers, shoalers, opportunists, and hunters with local sensing and simple intent rules
 - deterministic seeded tanks with bottom-mounted formations, wake zones, and current variation
 - juvenile and adult life stages, food competition, predation, reproduction, and disturbances
-- observatory UI with focus mode, fish inspector, lineage highlighting, event timeline, scenario lab controls, replay bookmarks, and seed audit tools
+- observatory UI with focus mode, fish inspector, named fish subjects, an in-tank subject card, story counters, watch feed, lineage highlighting, event timeline, scenario lab controls, replay bookmarks, and seed audit tools
 - Asset Forge-backed fish and habitat art with fallback rendering in `game.js`
 
 ## Docs

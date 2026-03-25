@@ -97,6 +97,13 @@
     inspectIntent: document.getElementById('inspect-intent'),
     inspectTarget: document.getElementById('inspect-target'),
     inspectLineageNote: document.getElementById('inspect-lineage-note'),
+    watchAge: document.getElementById('watch-age'),
+    watchMeals: document.getElementById('watch-meals'),
+    watchHunts: document.getElementById('watch-hunts'),
+    watchOffspring: document.getElementById('watch-offspring'),
+    watchStatus: document.getElementById('watch-status'),
+    watchFeed: document.getElementById('watch-feed'),
+    watchFeedNote: document.getElementById('watch-feed-note'),
     splitJuvenile: document.getElementById('split-juvenile'),
     splitAdult: document.getElementById('split-adult'),
     splitHerbivore: document.getElementById('split-herbivore'),
@@ -118,7 +125,7 @@
     },
   };
   const historyCtx = UI.historyCanvas ? UI.historyCanvas.getContext('2d') : null;
-
+  if (historyCtx) historyCtx.imageSmoothingEnabled = false;
   // Prefer stepped scaling so the tank can use the panel without becoming blurry.
   function resizeCanvas() {
     const rect = tankStage ? tankStage.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight };
@@ -273,7 +280,13 @@
     const point = canvasPointToWorld(e.clientX, e.clientY);
     const fish = pickFishAt(point.x, point.y);
     if (fish) {
-      selectFish(fish);
+      if (fish.id === selectedFishId) {
+        WATCH_VIEW.cardVisible = !WATCH_VIEW.cardVisible;
+        WATCH_VIEW.lastSubjectId = fish.id;
+        if (WATCH_VIEW.cardVisible) WATCH_VIEW.slotHold = 0;
+      } else {
+        selectFish(fish);
+      }
       updateUiPanels(true);
       SFX.play('ui');
       input.pointer.tapped = false;
@@ -415,6 +428,7 @@
     F['!'] = A(['00100', '00100', '00100', '00100', '00100', '00000', '00100']);
     F[':'] = A(['00000', '00110', '00110', '00000', '00110', '00110', '00000']);
     F['/'] = A(['00001', '00010', '00100', '01000', '10000', '00000', '00000']);
+    F['#'] = A(['01010', '11111', '01010', '01010', '11111', '01010', '01010']);
     F['-'] = A(['00000', '00000', '00000', '11111', '00000', '00000', '00000']);
     F['='] = A(['00000', '00000', '11111', '00000', '11111', '00000', '00000']);
     F['+'] = A(['00000', '00100', '00100', '11111', '00100', '00100', '00000']);
@@ -1219,6 +1233,21 @@
     activeSnapshotId: null,
   };
 
+  const WATCH_VIEW = {
+    cardVisible: false,
+    slot: 'tr',
+    slotHold: 0,
+    lastSubjectId: null,
+  };
+
+  const WATCH_PREFIX = {
+    grazer: ['Reed', 'Drift', 'Loam', 'Silt', 'Moss', 'Rill'],
+    shoaler: ['Glint', 'Ribbon', 'Flicker', 'Current', 'Shiver', 'Needle'],
+    opportunist: ['Skim', 'Brine', 'Scuff', 'Rook', 'Slip', 'Mottle'],
+    hunter: ['Wake', 'Razor', 'Talon', 'Pike', 'Mako', 'Vanta'],
+  };
+  const WATCH_SUFFIX = ['Thread', 'Echo', 'Notch', 'Trace', 'Gleam', 'Drift', 'Flash', 'Latch', 'Ridge', 'Veer'];
+
   const FISH_TINTS = [COL.fish1, COL.fish2, COL.fish3, COL.orange, COL.gray];
   function spreadPositions(count, start, end, wobble = 0) {
     if (count <= 1) return [(start + end) * 0.5];
@@ -1790,6 +1819,8 @@
     selectedFishId = preserveSelection ? preservedSelectionId : snapshot.selectedFishId ?? null;
     selectedFishPin = preserveSelection ? preservedSelectionPin : cloneData(snapshot.selectedFishPin ?? null);
     highlightedLineage = preserveSelection ? preservedLineage : snapshot.highlightedLineage ?? null;
+    WATCH_VIEW.slotHold = 0;
+    WATCH_VIEW.lastSubjectId = selectedFishId;
     const restoringLiveBranch = snapshot.kind === 'live' && !preserveReturn;
     paused = restoringLiveBranch ? Boolean(snapshot.paused) : true;
     pauseReason = paused ? (restoringLiveBranch ? snapshot.pauseReason || 'manual' : 'replay') : '';
@@ -2138,16 +2169,67 @@
     return null;
   }
 
-  function pinDataForFish(fish) {
+  function watchNameForFish(archetypeId, lineage, fishId, generation = 0) {
+    const prefixes = WATCH_PREFIX[archetypeId] || WATCH_PREFIX.grazer;
+    const prefix = prefixes[(Math.max(0, lineage) + Math.max(0, fishId) + generation) % prefixes.length];
+    const suffix = WATCH_SUFFIX[(Math.max(0, fishId) + lineage * 2 + generation) % WATCH_SUFFIX.length];
+    return `${prefix} ${suffix}`;
+  }
+
+  function liveWatchStatus(fish) {
+    if (!fish) return '-';
+    if (fish.intent === 'hunt') return 'Live hunt';
+    if (fish.intent === 'food' || fish.intent === 'plankton' || fish.intent === 'bloom') return 'Feeding';
+    if (fish.intent === 'evade') return 'Evading';
+    if (fish.intent === 'school') return 'Holding formation';
+    if (fish.intent === 'wake' || fish.intent === 'shelter') return 'Using cover';
+    if (fish.energy < currentReproductionEnergy() * 0.34) return 'Under pressure';
+    return 'Live';
+  }
+
+  function formatWatchAge(age) {
+    if (!Number.isFinite(age)) return '-';
+    return `${Math.max(0, age).toFixed(age >= 10 ? 0 : 1)}s`;
+  }
+
+  function pinDataForFish(fish, overrides = {}) {
     if (!fish) return null;
     return {
       id: fish.id,
       lineage: fish.lineage,
+      lineageTint: fish.lineageTint,
       archetype: fish.archetype,
       archetypeLabel: fish.archetypeLabel,
       generation: fish.generation,
       stage: fish.stage,
+      watchName: fish.watchName,
+      age: Number.isFinite(fish.age) ? Number(fish.age.toFixed(2)) : 0,
+      meals: fish.meals || 0,
+      hunts: fish.hunts || 0,
+      offspring: fish.offspring || 0,
+      watchStatus: overrides.watchStatus ?? liveWatchStatus(fish),
+      watchSummary: overrides.watchSummary ?? '',
+      exitTime: overrides.exitTime ?? null,
     };
+  }
+
+  function currentSubjectPin() {
+    const selected = findFishById(selectedFishId);
+    if (selected) {
+      selectedFishPin = pinDataForFish(selected);
+      return selectedFishPin;
+    }
+    return selectedFishPin;
+  }
+
+  function retainPinnedOutcome(fish, watchStatus, watchSummary) {
+    if (!fish) return;
+    if (selectedFishId !== fish.id && selectedFishPin?.id !== fish.id) return;
+    selectedFishPin = pinDataForFish(fish, {
+      watchStatus,
+      watchSummary,
+      exitTime: Number(g.time.toFixed(2)),
+    });
   }
 
   function selectedLineageId() {
@@ -2162,11 +2244,29 @@
   function clearSelection() {
     selectedFishId = null;
     selectedFishPin = null;
+    WATCH_VIEW.cardVisible = false;
+    WATCH_VIEW.lastSubjectId = null;
+    WATCH_VIEW.slotHold = 0;
   }
 
   function selectFish(fish) {
+    if (fish && fish.id !== selectedFishId) {
+      WATCH_VIEW.slotHold = 0;
+    }
     selectedFishId = fish ? fish.id : null;
     selectedFishPin = fish ? pinDataForFish(fish) : null;
+    WATCH_VIEW.lastSubjectId = fish ? fish.id : null;
+    WATCH_VIEW.cardVisible = Boolean(fish);
+  }
+
+  function toggleWatchCard(force = null) {
+    if (!currentSubjectPin()) {
+      WATCH_VIEW.cardVisible = false;
+      return false;
+    }
+    WATCH_VIEW.cardVisible = force == null ? !WATCH_VIEW.cardVisible : Boolean(force);
+    if (WATCH_VIEW.cardVisible) WATCH_VIEW.slotHold = 0;
+    return WATCH_VIEW.cardVisible;
   }
 
   function toggleSelectedLineageHighlight() {
@@ -2190,6 +2290,20 @@
 
   function pushEvent(kind, title, detail, meta = {}) {
     if (!g || !g.events) return;
+    const relatedFishIds = Array.from(
+      new Set(
+        [meta.fishId, meta.targetFishId, meta.parentFishId, ...(Array.isArray(meta.relatedFishIds) ? meta.relatedFishIds : [])].filter(
+          (value) => value != null,
+        ),
+      ),
+    );
+    const relatedLineages = Array.from(
+      new Set(
+        [meta.lineage, meta.targetLineage, meta.parentLineage, ...(Array.isArray(meta.relatedLineages) ? meta.relatedLineages : [])].filter(
+          (value) => value != null,
+        ),
+      ),
+    );
     g.events.unshift({
       kind,
       title,
@@ -2197,6 +2311,12 @@
       time: g.time,
       fishId: meta.fishId ?? null,
       lineage: meta.lineage ?? null,
+      targetFishId: meta.targetFishId ?? null,
+      targetLineage: meta.targetLineage ?? null,
+      parentFishId: meta.parentFishId ?? null,
+      parentLineage: meta.parentLineage ?? null,
+      relatedFishIds,
+      relatedLineages,
     });
     if (g.events.length > SIM.eventLogMax) g.events.length = SIM.eventLogMax;
   }
@@ -2228,6 +2348,48 @@
       .map((snapshot) => {
         const active = snapshot.id === REPLAY.activeSnapshotId;
         return `<button type="button" class="bookmark-chip" data-bookmark-id="${snapshot.id}" data-active="${active ? 'true' : 'false'}"><strong>${snapshot.label} · T+${formatEventTime(snapshot.takenAt)}</strong><small>${scenarioById(snapshot.scenarioId).label} · seed ${snapshot.currentSeed} · ${snapshot.state.fish.length} fish</small></button>`;
+      })
+      .join('');
+  }
+
+  function renderWatchFeed(subjectPin) {
+    if (!UI.watchFeed || !UI.watchFeedNote) return;
+    if (!subjectPin) {
+      UI.watchFeedNote.textContent = 'Recent events for the pinned fish or lineage.';
+      UI.watchFeed.innerHTML =
+        '<article class="event-item"><span class="event-time">Watch</span><strong>No subject pinned</strong><small>Pick a fish to start a fish-centric event feed.</small></article>';
+      return;
+    }
+
+    const fishId = subjectPin.id;
+    const lineage = subjectPin.lineage;
+    const direct = [];
+    const branch = [];
+    for (const event of g.events) {
+      const directMatch = fishId != null && Array.isArray(event.relatedFishIds) && event.relatedFishIds.includes(fishId);
+      const branchMatch =
+        !directMatch && lineage != null && Array.isArray(event.relatedLineages) && event.relatedLineages.includes(lineage);
+      if (directMatch) direct.push({ event, scope: 'Direct' });
+      else if (branchMatch) branch.push({ event, scope: 'Branch' });
+    }
+    const entries = [...direct, ...branch].slice(0, 6);
+
+    if (!entries.length) {
+      UI.watchFeedNote.textContent = `${subjectPin.watchName} has no direct or branch events in the current window yet.`;
+      UI.watchFeed.innerHTML =
+        '<article class="event-item"><span class="event-time">Watch</span><strong>No tracked events yet</strong><small>The watch feed fills as this fish, or its lineage, triggers notable events.</small></article>';
+      return;
+    }
+
+    UI.watchFeedNote.textContent =
+      direct.length > 0
+        ? `Showing direct events for ${subjectPin.watchName}, with lineage spillover when the branch is active.`
+        : `No direct events for ${subjectPin.watchName} in view, so this feed is following lineage ${subjectPin.lineage}.`;
+    UI.watchFeed.innerHTML = entries
+      .map(({ event, scope }) => {
+        return `<article class="event-item" data-kind="${event.kind}"><span class="event-time">${scope} · T+${formatEventTime(
+          event.time,
+        )}</span><strong>${event.title}</strong><small>${event.detail}</small></article>`;
       })
       .join('');
   }
@@ -2449,9 +2611,9 @@
       UI.focusButton.textContent = cinematic ? 'Exit Focus [C]' : 'Focus [C]';
       UI.focusButton.dataset.state = cinematic ? 'active' : 'idle';
     }
+    const subjectPin = currentSubjectPin();
     const selected = findFishById(selectedFishId);
-    if (selected) selectedFishPin = pinDataForFish(selected);
-    const selectedLineage = selected ? selected.lineage : selectedFishPin?.lineage ?? null;
+    const selectedLineage = selected ? selected.lineage : subjectPin?.lineage ?? null;
     if (UI.inspectHighlightButton) {
       const active = Boolean(selectedLineage != null && highlightedLineage === selectedLineage);
       UI.inspectHighlightButton.textContent = active ? 'Lineage On [L]' : 'Highlight [L]';
@@ -2593,6 +2755,7 @@
     const selected = findFishById(selectedFishId);
     if (selected) selectedFishPin = pinDataForFish(selected);
     const pinned = selectedFishPin;
+    const subjectPin = selected || pinned ? currentSubjectPin() : null;
     const replayActive = REPLAY.activeSnapshotId != null;
     const scenario = currentScenario();
     const season = g.env.season;
@@ -2709,9 +2872,9 @@
     if (selected) {
       const lineageCount = countLivingLineage(selected.lineage);
       if (UI.inspectKicker) UI.inspectKicker.textContent = `Lineage ${selected.lineage}`;
-      if (UI.inspectName) UI.inspectName.textContent = `${selected.archetypeLabel} #${selected.id}`;
+      if (UI.inspectName) UI.inspectName.textContent = selected.watchName || `${selected.archetypeLabel} #${selected.id}`;
       if (UI.inspectSummary) {
-        UI.inspectSummary.textContent = `Generation ${selected.generation} ${selected.stage} with ${Math.round(selected.energy)} energy and ${lineageCount} living fish in the lineage.`;
+        UI.inspectSummary.textContent = `${selected.archetypeLabel} #${selected.id} is a generation ${selected.generation} ${selected.stage} with ${Math.round(selected.energy)} energy and ${lineageCount} living fish in the lineage. Click the same fish again to tuck the in-tank card away without clearing the subject.`;
       }
       if (UI.inspectArchetype) UI.inspectArchetype.textContent = selected.archetypeLabel;
       if (UI.inspectStage) UI.inspectStage.textContent = selected.stage.toUpperCase();
@@ -2736,11 +2899,11 @@
     } else if (pinned) {
       const lineageCount = pinned.lineage != null ? countLivingLineage(pinned.lineage) : 0;
       if (UI.inspectKicker) UI.inspectKicker.textContent = pinned.lineage != null ? `Lineage ${pinned.lineage}` : 'Pinned fish';
-      if (UI.inspectName) UI.inspectName.textContent = `${pinned.archetypeLabel} #${pinned.id}`;
+      if (UI.inspectName) UI.inspectName.textContent = pinned.watchName || `${pinned.archetypeLabel} #${pinned.id}`;
       if (UI.inspectSummary) {
         UI.inspectSummary.textContent = replayActive
           ? `Pinned fish is not present in this snapshot. It may not have been born yet or may already be gone at this moment in the branch.`
-          : `Pinned fish is no longer present in the live tank. It may have died or been consumed, but the inspector is keeping your subject pinned for review.`;
+          : pinned.watchSummary || `Pinned fish is no longer present in the live tank. It may have died or been consumed, but the inspector is keeping your subject pinned for review.`;
       }
       if (UI.inspectArchetype) UI.inspectArchetype.textContent = pinned.archetypeLabel;
       if (UI.inspectStage) UI.inspectStage.textContent = pinned.stage.toUpperCase();
@@ -2771,7 +2934,7 @@
         UI.inspectSummary.textContent =
           highlightedLineage != null
             ? `Lineage ${highlightedLineage} is still highlighted. Click a fish in the tank to pin its live state.`
-            : 'Click any fish in the tank to pin it. Empty-water taps still pause the run.';
+            : 'Click any fish in the tank to pin it. Click the same fish again to hide or restore the in-tank card. Empty-water taps still pause the run.';
       }
       if (UI.inspectArchetype) UI.inspectArchetype.textContent = '-';
       if (UI.inspectStage) UI.inspectStage.textContent = '-';
@@ -2789,6 +2952,29 @@
             : 'Lineage highlighting is off.';
       }
     }
+
+    if (selected) {
+      if (UI.watchAge) UI.watchAge.textContent = formatWatchAge(selected.age);
+      if (UI.watchMeals) UI.watchMeals.textContent = String(selected.meals || 0);
+      if (UI.watchHunts) UI.watchHunts.textContent = String(selected.hunts || 0);
+      if (UI.watchOffspring) UI.watchOffspring.textContent = String(selected.offspring || 0);
+      if (UI.watchStatus) UI.watchStatus.textContent = liveWatchStatus(selected);
+    } else if (pinned) {
+      const pinnedStatus = replayActive ? 'Off-snapshot' : pinned.exitTime != null ? pinned.watchStatus || 'Absent' : 'Absent';
+      if (UI.watchAge) UI.watchAge.textContent = formatWatchAge(pinned.age);
+      if (UI.watchMeals) UI.watchMeals.textContent = String(pinned.meals || 0);
+      if (UI.watchHunts) UI.watchHunts.textContent = String(pinned.hunts || 0);
+      if (UI.watchOffspring) UI.watchOffspring.textContent = String(pinned.offspring || 0);
+      if (UI.watchStatus) UI.watchStatus.textContent = pinnedStatus;
+    } else {
+      if (UI.watchAge) UI.watchAge.textContent = '-';
+      if (UI.watchMeals) UI.watchMeals.textContent = '-';
+      if (UI.watchHunts) UI.watchHunts.textContent = '-';
+      if (UI.watchOffspring) UI.watchOffspring.textContent = '-';
+      if (UI.watchStatus) UI.watchStatus.textContent = '-';
+    }
+
+    renderWatchFeed(subjectPin);
 
     if (UI.historyNote) {
       if (!latest || !recent) UI.historyNote.textContent = 'Sampling the tank...';
@@ -3253,12 +3439,13 @@
     const vy = opts.vy ?? randSim(-scaleWorld(12), scaleWorld(12));
     const lineage = opts.lineage ?? nextLineageId++;
     const lineageTint = opts.lineageTint ?? nextLineageTint(lineage);
+    const id = opts.id ?? nextFishId++;
     const spawnPoint =
       opts.x != null && opts.y != null
         ? projectOutOfFormation(opts.x, opts.y, r * 0.68, true)
         : randomOpenWaterPoint(WORLD.spawnTop, WORLD.sandLine, r * 0.68, true);
     return {
-      id: opts.id ?? nextFishId++,
+      id,
       x: spawnPoint.x,
       y: spawnPoint.y,
       vx,
@@ -3270,6 +3457,7 @@
       tint: pickTint(opts.tint, archetype.tint),
       lineage,
       lineageTint,
+      watchName: opts.watchName ?? watchNameForFish(archetype.id, lineage, id, opts.generation ?? 0),
       energy: opts.energy ?? randSim(46, 70),
       age: opts.age ?? 0,
       generation: opts.generation ?? 0,
@@ -3287,6 +3475,9 @@
       trailT: opts.trailT ?? randSim(0, SIM.trailSampleEvery),
       wasteT: opts.wasteT ?? randSim(SIM.wasteEveryMin, SIM.wasteEveryMax),
       flash: opts.flash ?? 0,
+      meals: opts.meals ?? 0,
+      hunts: opts.hunts ?? 0,
+      offspring: opts.offspring ?? 0,
       hunger: 0,
       stress: 0,
       neighbors: 0,
@@ -3348,6 +3539,9 @@
     rebuildHabitat(currentSeed);
     nextLineageId = 1;
     nextFishId = 1;
+    WATCH_VIEW.cardVisible = false;
+    WATCH_VIEW.slotHold = 0;
+    WATCH_VIEW.lastSubjectId = null;
     selectedFishId = null;
     selectedFishPin = null;
     highlightedLineage = null;
@@ -3422,12 +3616,20 @@
       },
       flash: 0.75,
     });
+    parent.offspring = (parent.offspring || 0) + 1;
     g.stats.births++;
     pushEvent(
       'birth',
       `${parent.archetypeLabel} split into a juvenile`,
       `Generation ${child.generation} entered the tank with ${Math.round(child.energy)} energy.`,
-      { fishId: child.id, lineage: child.lineage },
+      {
+        fishId: child.id,
+        lineage: child.lineage,
+        parentFishId: parent.id,
+        parentLineage: parent.lineage,
+        relatedFishIds: [child.id, parent.id],
+        relatedLineages: [child.lineage, parent.lineage],
+      },
     );
     burst(parent.x, parent.y, COL.foam, 12, 62, 0.32);
     return child;
@@ -3960,6 +4162,11 @@
       if (f.energy <= 0) {
         f.alive = false;
         g.stats.deaths++;
+        retainPinnedOutcome(
+          f,
+          'Starved',
+          `${f.watchName || f.archetypeLabel} starved at T+${formatEventTime(g.time)} after ${Math.round(f.age)} seconds in the tank.`,
+        );
         pushEvent('death', `${f.archetypeLabel} starved`, `Lineage ${f.lineage} lost a ${f.stage} at ${Math.round(f.age)}s of age.`, {
           fishId: f.id,
           lineage: f.lineage,
@@ -3994,6 +4201,7 @@
         const size01 = clamp((f.r - scaleWorld(4)) / scaleWorld(6.5), 0, 1);
         const foodGain = SIM.foodEnergy * lerp(1.20, 0.82, size01) * lerp(1.12, 0.84, f.traits.carnivore);
         f.energy = Math.min(maxEnergy, f.energy + foodGain);
+        f.meals = (f.meals || 0) + 1;
         f.satiation = clamp(f.satiation + lerp(0.35, 0.12, f.traits.carnivore), 0, 1.8);
         f.flash = Math.max(f.flash, 0.20);
         rememberPatch(f, food.x, food.y, 1.05 + planktonRichnessAt(food.x, food.y, scaleWorld(12)) * 0.08);
@@ -4032,10 +4240,17 @@
         if (eater && prey) {
           prey.alive = false;
           eater.energy = Math.min(maxEnergy, eater.energy + SIM.preyEnergy + prey.r * 2.4);
+          eater.meals = (eater.meals || 0) + 1;
+          eater.hunts = (eater.hunts || 0) + 1;
           eater.satiation = clamp(eater.satiation + 0.95, 0, 2.2);
           eater.huntCd = randSim(SIM.predatorCooldownMin, SIM.predatorCooldownMax);
           eater.flash = Math.max(eater.flash, 0.32);
           rememberPatch(eater, prey.x, prey.y, 1.5);
+          retainPinnedOutcome(
+            prey,
+            'Consumed',
+            `${prey.watchName || prey.archetypeLabel} was consumed by ${eater.watchName || eater.archetypeLabel} at T+${formatEventTime(g.time)}.`,
+          );
           for (let n = 0; n < Math.max(2, Math.round(prey.r * 0.5)); n++) {
             spawnDetritus(prey.x + randSim(-prey.r, prey.r), prey.y + randSim(-prey.r, prey.r), 0.24 + prey.r * 0.05, prey.lineageTint);
           }
@@ -4045,7 +4260,14 @@
             'predation',
             `${eater.archetypeLabel} consumed ${prey.archetypeLabel.toLowerCase()}`,
             `Lineage ${eater.lineage} caught lineage ${prey.lineage} in open water.`,
-            { fishId: eater.id, lineage: eater.lineage },
+            {
+              fishId: eater.id,
+              lineage: eater.lineage,
+              targetFishId: prey.id,
+              targetLineage: prey.lineage,
+              relatedFishIds: [eater.id, prey.id],
+              relatedLineages: [eater.lineage, prey.lineage],
+            },
           );
           burst(prey.x, prey.y, prey.tint, 14, 70, 0.42);
           shake(1.6);
@@ -4267,6 +4489,141 @@
     drawText(c, `${disturbanceLabel().toUpperCase()} • FISH ${g.fish.length} FOOD ${g.food.length} AVG E ${Math.round(g.avgEnergy)}`, W / 2, scaleWorld(108), COL.gray, 1, 'center');
     drawText(c, 'P / SPACE TO RESUME  R FOR NEXT SEED  B TO BOOKMARK', W / 2, scaleWorld(118), `rgba(168,230,255,${0.25 + 0.65 * pulse})`, 1, 'center');
     drawText(c, 'USE THE CONTROL DOCK FOR SCENARIOS, REWINDS, AND PRESSURE', W / 2, scaleWorld(128), COL.gray, 1, 'center');
+  }
+
+  function watchSubjectState() {
+    const selected = findFishById(selectedFishId);
+    if (selected) selectedFishPin = pinDataForFish(selected);
+    const pinned = selectedFishPin;
+    if (!selected && !pinned) return null;
+    const replayActive = REPLAY.activeSnapshotId != null;
+    const subject = selected || pinned;
+    const status = selected
+      ? liveWatchStatus(selected).toUpperCase()
+      : replayActive
+        ? 'OFF SNAPSHOT'
+        : String(subject.watchStatus || 'ABSENT').toUpperCase();
+    const detail = selected
+      ? `E ${Math.round(selected.energy)} AGE ${Math.round(selected.age)}S`
+      : subject.lineage != null
+        ? `LINE ${subject.lineage} GEN ${subject.generation}`
+        : `GEN ${subject.generation}`;
+    const note = selected
+      ? `LINE ${selected.lineage} ${selected.stage.toUpperCase()}`
+      : replayActive
+        ? 'RETURN LIVE TO TRACK'
+        : 'FOLLOW THE LINEAGE';
+    return {
+      selected,
+      pinned,
+      subject,
+      present: Boolean(selected),
+      replayActive,
+      name: subject.watchName || `${subject.archetypeLabel} #${subject.id}`,
+      title: `${subject.archetypeLabel} #${subject.id}`,
+      status,
+      detail,
+      note,
+      tint: subject.lineageTint || COL.foam,
+    };
+  }
+
+  function watchSlotPosition(slot, fish, boxW, boxH) {
+    const offsetX = fish.r + scaleWorld(14);
+    const offsetY = fish.r + scaleWorld(12);
+    const rawX = slot.includes('r') ? fish.x + offsetX : fish.x - offsetX - boxW;
+    const rawY = slot.startsWith('b') ? fish.y + offsetY : fish.y - offsetY - boxH;
+    const x = clamp(rawX, 8, W - boxW - 8);
+    const y = clamp(rawY, WORLD.hudH + 8, H - boxH - 8);
+    const overflow = Math.abs(rawX - x) + Math.abs(rawY - y);
+    return { x, y, overflow };
+  }
+
+  function preferredWatchSlot(fish) {
+    const nearLeft = fish.x < scaleWorld(56);
+    const nearRight = fish.x > W - scaleWorld(56);
+    const nearTop = fish.y < WORLD.hudH + scaleWorld(36);
+    const nearBottom = fish.y > H - scaleWorld(52);
+    const horiz = nearLeft ? 'r' : nearRight ? 'l' : fish.facing >= 0 ? 'l' : 'r';
+    const vert = nearTop ? 'b' : nearBottom ? 't' : 't';
+    return `${vert}${horiz}`;
+  }
+
+  function drawWatchOverlay(c) {
+    const state = watchSubjectState();
+    if (!state || !WATCH_VIEW.cardVisible) return;
+
+    const lineH = 9;
+    const pad = 6;
+    const lines = [state.name, state.title, state.status, state.detail, state.note];
+    const textWidth = lines.reduce((max, line) => Math.max(max, bitmapTextWidth(line, 1)), 0);
+    const textBoxW = Math.max(scaleWorld(76), textWidth + 4);
+    const boxW = pad * 2 + textBoxW;
+    const boxH = pad * 2 + lines.length * lineH;
+
+    let x = W - boxW - 8;
+    let y = WORLD.hudH + 8;
+    let anchorX = x + boxW * 0.5;
+    let anchorY = y + boxH * 0.5;
+    let slot = WATCH_VIEW.slot;
+
+    if (state.present) {
+      const preferred = preferredWatchSlot(state.selected);
+      const current = watchSlotPosition(WATCH_VIEW.slot, state.selected, boxW, boxH);
+      const desired = watchSlotPosition(preferred, state.selected, boxW, boxH);
+      if (WATCH_VIEW.lastSubjectId !== state.selected.id) {
+        WATCH_VIEW.slot = preferred;
+        WATCH_VIEW.slotHold = 0.8;
+      } else if (current.overflow > scaleWorld(4.5) || (preferred !== WATCH_VIEW.slot && WATCH_VIEW.slotHold <= 0 && desired.overflow <= current.overflow + 1)) {
+        WATCH_VIEW.slot = preferred;
+        WATCH_VIEW.slotHold = 0.8;
+      }
+      slot = WATCH_VIEW.slot;
+      const pos = watchSlotPosition(slot, state.selected, boxW, boxH);
+      x = pos.x;
+      y = pos.y;
+      anchorX = clamp(state.selected.x, x + 10, x + boxW - 10);
+      anchorY = clamp(state.selected.y, y + 10, y + boxH - 10);
+      WATCH_VIEW.lastSubjectId = state.selected.id;
+    } else {
+      const topOffset = REPLAY.activeSnapshotId != null ? scaleWorld(36) : 0;
+      x = W - boxW - 8;
+      y = WORLD.hudH + 8 + topOffset;
+      anchorX = x + boxW - 14;
+      anchorY = y + boxH * 0.5;
+      WATCH_VIEW.lastSubjectId = state.subject.id;
+    }
+
+    const textX = x + pad;
+    const textY = y + pad;
+
+    if (state.present) {
+      c.save();
+      c.globalAlpha = 0.5;
+      c.strokeStyle = state.tint;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(state.selected.x, state.selected.y);
+      c.lineTo(anchorX, anchorY);
+      c.stroke();
+      c.restore();
+    }
+
+    c.save();
+    c.fillStyle = 'rgba(6,12,24,0.86)';
+    c.fillRect(x, y, boxW, boxH);
+    c.strokeStyle = 'rgba(168,230,255,0.14)';
+    c.strokeRect(x + 0.5, y + 0.5, boxW - 1, boxH - 1);
+    c.fillStyle = state.tint;
+    c.fillRect(x + 1, y + 1, 3, boxH - 2);
+    c.fillStyle = 'rgba(255,255,255,0.05)';
+    c.fillRect(x + 5, y + 5, boxW - 10, 1);
+
+    for (let i = 0; i < lines.length; i++) {
+      const color = i === 0 ? COL.white : i === 2 ? state.tint : COL.gray;
+      drawText(c, lines[i], textX, textY + i * lineH, color, 1);
+    }
+    c.restore();
   }
 
   function renderFoodMap(c) {
@@ -4893,6 +5250,7 @@
     if (paused && pauseReason === 'replay') renderReplayOverlay(ctx);
     else if (paused) renderPauseOverlay(ctx);
     postFx();
+    drawWatchOverlay(ctx);
     drawFrame(ctx);
   }
 
@@ -4994,6 +5352,8 @@
     }
     else pauseClock += dt;
 
+    WATCH_VIEW.slotHold = Math.max(0, WATCH_VIEW.slotHold - dt);
+
     ctx.clearRect(0, 0, W, H);
     renderSimulation();
     uiClock += dt;
@@ -5025,8 +5385,10 @@
       selectedFishId,
       selectedFishPin: cloneData(selectedFishPin),
       highlightedLineage,
+      watchCardVisible: WATCH_VIEW.cardVisible,
       selectedPresent: Boolean(findFishById(selectedFishId)),
     }),
+    toggleWatchCard: (value) => toggleWatchCard(value),
     setView: (key, value) => {
       if (!(key in VIEW)) return { ...VIEW };
       VIEW[key] = value == null ? !VIEW[key] : Boolean(value);

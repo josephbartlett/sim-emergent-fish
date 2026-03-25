@@ -74,10 +74,20 @@ The canvas HUD shows:
 
 The in-canvas hint panel calls out disruptions such as current reversals, collapses, or early-run orientation notes.
 
+### In-Tank Subject Card
+
+Selecting a fish now adds a subject card inside the tank itself.
+
+- the card stays anchored near the fish instead of pushing attention into a side panel
+- it shows the watch name, archetype, status, energy or replay state, and lineage context
+- clicking the same fish again tucks the card away while keeping the fish pinned in the inspector
+- clicking that fish again restores the card without losing the subject
+
 ### Inspector
 
 Selecting a fish exposes:
 
+- a watch name for the current subject
 - archetype
 - life stage
 - energy
@@ -86,6 +96,8 @@ Selecting a fish exposes:
 - lineage
 - generation
 - current intent
+- story counters such as age, meals, hunts, and offspring
+- a filtered watch feed for the fish and its lineage
 
 The selected fish keeps a white ring. If it has a live target, a line can point to that target.
 

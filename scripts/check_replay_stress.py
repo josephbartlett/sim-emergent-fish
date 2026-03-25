@@ -39,7 +39,10 @@ def inspect_state(page):
           const inspectName = document.getElementById('inspect-name');
           const inspectSummary = document.getElementById('inspect-summary');
           const inspectLineageNote = document.getElementById('inspect-lineage-note');
+          const watchStatus = document.getElementById('watch-status');
+          const watchFeed = document.getElementById('watch-feed');
           const texts = Array.from(eventStream.querySelectorAll('.event-item')).map((el) => el.innerText);
+          const watchTexts = Array.from(watchFeed.querySelectorAll('.event-item')).map((el) => el.innerText);
           return {
             time: snap.time,
             paused: snap.paused,
@@ -61,6 +64,10 @@ def inspect_state(page):
             inspectName: inspectName.textContent,
             inspectSummary: inspectSummary.textContent,
             inspectLineageNote: inspectLineageNote.textContent,
+            watchStatus: watchStatus.textContent,
+            watchFeedCount: watchTexts.length,
+            watchFeedPlaceholder: watchTexts.some((text) => /No subject pinned|No tracked events yet/i.test(text)),
+            topWatchEvents: watchTexts.slice(0, 3),
           };
         }"""
     )
@@ -120,6 +127,15 @@ def main() -> int:
             tracked_fish_id = fish_ids[-1]
             page.evaluate("(id) => window.__FISHTANK_DEBUG__.selectFishById(id)", tracked_fish_id)
             page.click("#inspect-highlight")
+            hidden_state = page.evaluate(
+                """() => {
+                  window.__FISHTANK_DEBUG__.toggleWatchCard(false);
+                  return window.__FISHTANK_DEBUG__.selection();
+                }"""
+            )
+            if hidden_state.get("selectedFishId") != tracked_fish_id or hidden_state.get("watchCardVisible"):
+                record_failure(failures, "card-hide-selection-shifted", {"selection": hidden_state}, {"tracked_fish_id": tracked_fish_id})
+            page.evaluate("window.__FISHTANK_DEBUG__.toggleWatchCard(true)")
         live_before = inspect_state(page)
         if live_before["bookmarkCount"] < 2:
             record_failure(failures, "bookmark-setup", live_before)
@@ -127,6 +143,10 @@ def main() -> int:
             tracked_lineage = live_before["selection"]["highlightedLineage"]
             if live_before["selection"]["selectedFishId"] != tracked_fish_id:
                 record_failure(failures, "selection-setup", live_before, {"tracked_fish_id": tracked_fish_id})
+            if not live_before["selection"].get("watchCardVisible"):
+                record_failure(failures, "card-not-visible", live_before, {"tracked_fish_id": tracked_fish_id})
+            if not live_before["watchStatus"] or live_before["watchStatus"] == "-":
+                record_failure(failures, "watch-status-empty", live_before, {"tracked_fish_id": tracked_fish_id})
 
         scrub_max = int(live_before["scrubMax"])
         pattern = [0, max(0, scrub_max - 1), scrub_max // 2, scrub_max, max(0, scrub_max - 3), 1, scrub_max, 0]
@@ -150,8 +170,12 @@ def main() -> int:
                     record_failure(failures, "scrub-selection-shifted", state, {"iteration": i, "target": target, "tracked_fish_id": tracked_fish_id})
                 if tracked_lineage is not None and selection.get("highlightedLineage") != tracked_lineage:
                     record_failure(failures, "scrub-lineage-shifted", state, {"iteration": i, "target": target, "tracked_lineage": tracked_lineage})
+                if not selection.get("watchCardVisible"):
+                    record_failure(failures, "scrub-card-hidden", state, {"iteration": i, "target": target})
                 if not selection.get("selectedPresent") and "No fish selected" in state["inspectName"]:
                     record_failure(failures, "scrub-selection-lost-in-inspector", state, {"iteration": i, "target": target})
+                if not selection.get("selectedPresent") and state["watchStatus"] != "Off-snapshot":
+                    record_failure(failures, "scrub-watch-status", state, {"iteration": i, "target": target})
 
         page.evaluate("window.__FISHTANK_DEBUG__.returnToLive()")
         page.evaluate("window.__FISHTANK_DEBUG__.runAudit(35)")
@@ -182,6 +206,8 @@ def main() -> int:
                 selected_pin = selection.get("selectedFishPin") or {}
                 if selection.get("selectedFishId") != tracked_fish_id or selected_pin.get("id") != tracked_fish_id:
                     record_failure(failures, "button-selection-shifted", state, {"iteration": i, "tracked_fish_id": tracked_fish_id})
+                if not selection.get("watchCardVisible"):
+                    record_failure(failures, "button-card-hidden", state, {"iteration": i, "tracked_fish_id": tracked_fish_id})
             button_cycles_completed = i + 1
 
         if button_cycles_completed == 0:
@@ -220,6 +246,8 @@ def main() -> int:
             selected_pin = selection.get("selectedFishPin") or {}
             if selection.get("selectedFishId") != tracked_fish_id or selected_pin.get("id") != tracked_fish_id:
                 record_failure(failures, "live-after-selection-shifted", live_after, {"tracked_fish_id": tracked_fish_id})
+            if not selection.get("watchCardVisible"):
+                record_failure(failures, "live-after-card-hidden", live_after, {"tracked_fish_id": tracked_fish_id})
 
         browser.close()
 

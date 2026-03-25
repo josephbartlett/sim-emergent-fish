@@ -22,6 +22,7 @@ Bug sweep status as of 2026-03-24:
 - the seed audit completed successfully and returned stable aggregate metrics
 - a Playwright-backed seed-audit threshold check now exists for local and CI use
 - a Playwright-backed replay stress check now exists for local and CI use, covering bookmarks, scrubber motion, rewind buttons, branch resumes, and live return
+- the `v0.3.0` branch work now includes fish-subject follow flow, watch surfaces, and replay-preserved selection behavior that should remain under browser regression checks
 
 Residual risks to keep an eye on:
 
@@ -63,11 +64,16 @@ Theme: watchability and attachment.
 
 Target features:
 
-- follow mode for a selected fish
 - stronger fish identity and persistent subject handling
 - fish-centric history such as lifespan, generation, and notable events
 - better event surfacing around the selected fish or highlighted lineage
-- clearer "watch this one" UX that reinforces curiosity without introducing scripted outcomes
+- clearer "watch this one" UX through the inspector and event feed without introducing scripted outcomes
+
+Release-candidate notes:
+
+- keep the main tank camera stable and use the in-tank subject card plus inspector as the follow surface
+- prefer fish identity, watch surfaces, and attachment loops over adding scripted drama
+- extend replay/browser checks as fish-subject UX gets deeper so the inspector does not regress back into generic state
 
 ## v0.4.0
 
