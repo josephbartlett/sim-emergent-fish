@@ -6,7 +6,7 @@
   const ENABLED_KEY = 'fishtank.music.enabled.v4';
   const CACHE_DB = 'fishtank-audio-cache';
   const CACHE_STORE = 'renders';
-  const RENDER_CACHE_VERSION = 'ambient-pack-v1-mono12';
+  const RENDER_CACHE_VERSION = 'ambient-pack-v2-mono12';
 
   const clamp = (value, min, max) => (value < min ? min : value > max ? max : value);
 
@@ -356,6 +356,24 @@
     return context.decodeAudioData(arrayBuffer.slice(0));
   }
 
+  function normalizeCachedRender(cached) {
+    if (cached instanceof ArrayBuffer) {
+      return { wav: cached, tempoBpm: 0, duration: 0 };
+    }
+    if (
+      cached &&
+      typeof cached === 'object' &&
+      cached.wav instanceof ArrayBuffer
+    ) {
+      return {
+        wav: cached.wav,
+        tempoBpm: Number.isFinite(cached.tempoBpm) ? cached.tempoBpm : 0,
+        duration: Number.isFinite(cached.duration) ? cached.duration : 0,
+      };
+    }
+    return null;
+  }
+
   async function renderMidiToBuffer(midi) {
     const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     if (!OfflineCtx) throw new Error('Offline audio rendering is not available in this browser.');
@@ -591,14 +609,22 @@
 
       const promise = (async () => {
         const cached = await readCachedRender(cacheKey(normalized));
-        if (cached instanceof ArrayBuffer) return decodeCachedRender(cached);
+        const cachedRender = normalizeCachedRender(cached);
+        if (cachedRender) {
+          trackMeta.set(normalized, { tempo: cachedRender.tempoBpm, duration: cachedRender.duration });
+          return decodeCachedRender(cachedRender.wav);
+        }
         const track = trackAt(normalized);
         const response = await fetch(track.src, { cache: 'force-cache' });
         if (!response.ok) throw new Error(`Could not load ${track.src}.`);
         const midi = parseMidi(await response.arrayBuffer());
         trackMeta.set(normalized, { tempo: midi.tempoBpm, duration: midi.duration });
         const rendered = await renderMidiToBuffer(midi);
-        storeCachedRender(cacheKey(normalized), encodeWav(rendered));
+        storeCachedRender(cacheKey(normalized), {
+          wav: encodeWav(rendered),
+          tempoBpm: midi.tempoBpm,
+          duration: midi.duration,
+        });
         return rendered;
       })()
         .then((rendered) => {
