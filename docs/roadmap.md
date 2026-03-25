@@ -4,12 +4,12 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest tagged release: `v0.4.0`
+Latest tagged release: `v0.5.0`
 
 Current emphasis:
 
 - keep `main` releaseable
-- ship a lighter ambient-observatory release as `v0.4.0` without disturbing the simulation loop
+- keep the ambient observatory layer stable while the next release returns focus to ecology and spatial structure
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -79,7 +79,7 @@ Follow-on notes:
 
 Theme: ambient observatory polish.
 
-Delivered in this release candidate:
+Delivered in the latest tagged release:
 
 - optional ambient playback for `Glass Shelter`
 - compact tank-side music controls with toggle and volume
@@ -93,6 +93,22 @@ Follow-on notes:
 
 ## v0.5.0
 
+Theme: ambient observatory expansion.
+
+Delivered in the latest tagged release:
+
+- rotating ambient playback across `Glass Shelter`, `Moon Plankton`, `Seed Rain`, and `Stonewake Drift`
+- compact transport controls beside the main tank actions
+- keyboard transport shortcuts for quick observation flow without drawer clutter
+- preserved ChatGPT attribution in the ambient note while tracks rotate
+
+Follow-on notes:
+
+- keep music opt-in and visually subordinate to the tank
+- treat future audio changes as observatory polish, not a replacement for simulation depth
+
+## v0.6.0
+
 Theme: stronger spatial ecology.
 
 Target features:
@@ -101,7 +117,7 @@ Target features:
 - nursery behavior around formations and wake zones
 - stronger patrol, refuge, and ambush structure
 
-## v0.6.0
+## v0.7.0
 
 Theme: experiment hardening.
 

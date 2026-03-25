@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-25
+
 ### Added
 
 - three more bundled ambient MIDI cues: `Moon Plankton`, `Seed Rain`, and `Stonewake Drift`
