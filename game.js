@@ -53,6 +53,9 @@
     controlsCloseButton: document.getElementById('controls-close'),
     controlScrim: document.getElementById('control-scrim'),
     focusButton: document.getElementById('focus-mode'),
+    musicToolbarToggleButton: document.getElementById('music-toggle-toolbar'),
+    musicPrevButton: document.getElementById('music-prev'),
+    musicNextButton: document.getElementById('music-next'),
     seedInput: document.getElementById('seed-input'),
     applySeedButton: document.getElementById('apply-seed'),
     controlFood: document.getElementById('control-food'),
@@ -428,14 +431,28 @@
     if (!UI.musicPanel || !UI.musicToggleButton || !UI.musicVolume || !UI.musicNote || !UI.musicTrackTitle) return;
     if (!state) {
       UI.musicPanel.hidden = true;
+      if (UI.musicToolbarToggleButton) UI.musicToolbarToggleButton.hidden = true;
+      if (UI.musicPrevButton) UI.musicPrevButton.hidden = true;
+      if (UI.musicNextButton) UI.musicNextButton.hidden = true;
       return;
     }
     UI.musicPanel.hidden = false;
+    if (UI.musicToolbarToggleButton) UI.musicToolbarToggleButton.hidden = false;
+    if (UI.musicPrevButton) UI.musicPrevButton.hidden = false;
+    if (UI.musicNextButton) UI.musicNextButton.hidden = false;
     UI.musicTrackTitle.textContent = state.title;
     UI.musicToggleButton.textContent = state.buttonLabel;
     UI.musicToggleButton.dataset.state = state.loading ? 'loading' : state.enabled ? 'active' : 'idle';
     UI.musicToggleButton.disabled = Boolean(!state.available);
     UI.musicToggleButton.setAttribute('aria-pressed', state.preferredEnabled ? 'true' : 'false');
+    if (UI.musicToolbarToggleButton) {
+      UI.musicToolbarToggleButton.textContent = `${state.preferredEnabled ? 'Music On' : 'Music Off'} [M]`;
+      UI.musicToolbarToggleButton.dataset.state = UI.musicToggleButton.dataset.state;
+      UI.musicToolbarToggleButton.disabled = UI.musicToggleButton.disabled;
+      UI.musicToolbarToggleButton.setAttribute('aria-pressed', state.preferredEnabled ? 'true' : 'false');
+    }
+    if (UI.musicPrevButton) UI.musicPrevButton.disabled = Boolean(!state.available || state.loading);
+    if (UI.musicNextButton) UI.musicNextButton.disabled = Boolean(!state.available || state.loading);
     UI.musicVolume.value = String(Math.round(state.volume * 100));
     UI.musicVolume.disabled = !state.available;
     UI.musicNote.textContent = state.noteLabel;
@@ -3108,6 +3125,23 @@
         SFX.play('ui');
       });
     }
+    if (UI.musicToolbarToggleButton && MUSIC) {
+      UI.musicToolbarToggleButton.addEventListener('click', async () => {
+        await MUSIC.toggle();
+      });
+    }
+    if (UI.musicPrevButton && MUSIC) {
+      UI.musicPrevButton.addEventListener('click', () => {
+        MUSIC.previousTrack();
+        SFX.play('ui');
+      });
+    }
+    if (UI.musicNextButton && MUSIC) {
+      UI.musicNextButton.addEventListener('click', () => {
+        MUSIC.advanceTrack();
+        SFX.play('ui');
+      });
+    }
     if (UI.inspectHighlightButton) {
       UI.inspectHighlightButton.addEventListener('click', () => {
         if (!toggleSelectedLineageHighlight()) return;
@@ -5399,6 +5433,21 @@
       }
     }
 
+    if (MUSIC && consumePressed('KeyM')) {
+      MUSIC.toggle();
+      SFX.play('ui');
+    }
+
+    if (MUSIC && consumePressed('Comma')) {
+      MUSIC.previousTrack();
+      SFX.play('ui');
+    }
+
+    if (MUSIC && consumePressed('Period')) {
+      MUSIC.advanceTrack();
+      SFX.play('ui');
+    }
+
     if (consumePressed('KeyB') && document.activeElement !== UI.seedInput) {
       addBookmark();
       SFX.play('ui');
@@ -5456,6 +5505,7 @@
       selectedPresent: Boolean(findFishById(selectedFishId)),
     }),
     musicState: () => (MUSIC ? MUSIC.getState() : null),
+    previousMusicTrack: () => (MUSIC ? MUSIC.previousTrack() : null),
     advanceMusicTrack: () => (MUSIC ? MUSIC.advanceTrack() : null),
     toggleWatchCard: (value) => toggleWatchCard(value),
     setView: (key, value) => {

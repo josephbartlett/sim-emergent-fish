@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - ambient playback so the tank now rotates through the bundled music pack automatically instead of stopping on a single cue
 - audio prewarming so the active track is prepared first and the next cue is rendered in the background once playback is underway
+- the tank action row so ambient controls can be reached from quick buttons and hotkeys without relying only on the observation pill
+- the ambient note so ChatGPT composition attribution stays visible while the pack rotates
 
 ## [0.4.0] - 2026-03-25
 

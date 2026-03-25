@@ -523,16 +523,17 @@
     function snapshot() {
       const nextTrack = trackAt(state.trackIndex + 1);
       const preparing = state.loading && state.preferredEnabled;
+      const credit = attribution ? ` · ${attribution} composition` : '';
       return {
         ...state,
         buttonLabel: preparing ? 'Starting…' : state.preferredEnabled ? 'Music On' : 'Music Off',
         noteLabel: state.error
-          ? `Ambient unavailable · ${state.error}`
+          ? `Ambient unavailable · ${state.error}${credit}`
           : preparing
-            ? `Preparing ${state.title}… first start can take a moment.`
+            ? `Preparing ${state.title}… first start can take a moment.${credit}`
             : state.preferredEnabled && state.simulationPaused
-              ? `Paused with tank · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM`
-              : `${state.enabled ? 'On' : 'Off'} · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM${nextTrack ? ` · next ${nextTrack.title}` : ''}`,
+              ? `Paused with tank · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM${credit}`
+              : `${state.enabled ? 'On' : 'Off'} · cue ${state.trackIndex + 1}/${state.trackCount} · ${state.tempo} BPM${nextTrack ? ` · next ${nextTrack.title}` : ''}${credit}`,
       };
     }
 
@@ -819,8 +820,8 @@
       return emit();
     }
 
-    function advanceTrack() {
-      const nextIndex = state.trackIndex + 1;
+    function stepTrack(offset) {
+      const nextIndex = state.trackIndex + offset;
       if (state.preferredEnabled && !state.simulationPaused) {
         queuePlaybackStart(nextIndex);
       } else {
@@ -832,13 +833,21 @@
       return snapshot();
     }
 
+    function previousTrack() {
+      return stepTrack(-1);
+    }
+
+    function advanceTrack() {
+      return stepTrack(1);
+    }
+
     function getState() {
       return snapshot();
     }
 
     scheduleWarmRender();
     emit();
-    return { toggle, setVolume, getState, setSimulationPaused, advanceTrack };
+    return { toggle, setVolume, getState, setSimulationPaused, advanceTrack, previousTrack };
   }
 
   window.FishtankMusic = { createAmbientMusicController };
