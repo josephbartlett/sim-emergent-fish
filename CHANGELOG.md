@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-24
+
 ### Added
 
 - a static deployment build script under `scripts/build_static_site.sh`
