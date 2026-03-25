@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-25
+
 ### Added
 
 - optional ambient playback for `Glass Shelter`, with a compact toggle and volume control in the tank observation strip
@@ -14,6 +16,7 @@ The format is based on Keep a Changelog, and this repository follows Semantic Ve
 
 - the static deployment artifact so bundled music assets and `music.js` ship with hosted builds
 - ambient playback now starts only from its own toggle, pauses with the tank, and uses full-volume startup with cached renders for faster repeat loads
+- the roadmap so `v0.4.0` records the ambient observatory pass and pushes stronger spatial ecology to `v0.5.0`
 
 ### Fixed
 

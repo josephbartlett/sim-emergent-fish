@@ -4,12 +4,12 @@ This document tracks the next planned version themes and the current quality pos
 
 ## Current State
 
-Latest tagged release: `v0.3.1`
+Latest tagged release: `v0.4.0`
 
 Current emphasis:
 
 - keep `main` releaseable
-- prepare `v0.4.0` as a stronger spatial ecology release without losing the new watchability surfaces
+- ship a lighter ambient-observatory release as `v0.4.0` without disturbing the simulation loop
 - protect the emergent feel with regression checks and small, testable changes
 
 ## Quality Notes
@@ -77,6 +77,22 @@ Follow-on notes:
 
 ## v0.4.0
 
+Theme: ambient observatory polish.
+
+Delivered in this release candidate:
+
+- optional ambient playback for `Glass Shelter`
+- compact tank-side music controls with toggle and volume
+- browser-safe MIDI rendering with warm caching for faster starts
+- music behavior tied to simulation pause and resume
+
+Follow-on notes:
+
+- keep music opt-in and visually subordinate to the tank
+- prefer background prewarm and cache improvements over autoplay workarounds
+
+## v0.5.0
+
 Theme: stronger spatial ecology.
 
 Target features:
@@ -85,7 +101,7 @@ Target features:
 - nursery behavior around formations and wake zones
 - stronger patrol, refuge, and ambush structure
 
-## v0.5.0
+## v0.6.0
 
 Theme: experiment hardening.
 
